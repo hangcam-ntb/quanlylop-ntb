@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sơ Đồ Lớp & Trực Nhật - GVCN Cam Bích Hằng</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
@@ -11,7 +17,7 @@
         :root { 
             --primary-orange: #f97316; --dark-orange: #ea580c; --light-orange: #fff7ed;
             --info: #0ea5e9; --success: #10b981; --danger: #ef4444; --purple: #8b5cf6;
-            --bg-body: #f8fafc; --text-main: #1e293b; --border-color: #e2e8f0;
+            --bg-body: #f8fafc; --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
         }
 
         body { font-family: 'Nunito', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 30px 30px; margin: 0; color: var(--text-main); line-height: 1.5;}
@@ -20,12 +26,15 @@
         .header h1 { margin: 0 0 5px 0; font-weight: 900; font-size: 1.9em; text-transform: uppercase; letter-spacing: 1px;}
         .btn-back { position: absolute; left: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 800; transition: all 0.3s; display: flex; align-items: center; gap: 8px;}
         .btn-back:hover { background: white; color: var(--dark-orange); box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+        
+        .btn-logout { position: absolute; right: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 800; transition: all 0.3s; display: flex; align-items: center; gap: 8px; cursor: pointer;}
+        .btn-logout:hover { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);}
 
         .container { max-width: 1450px; margin: 0 auto 50px auto; background: rgba(255, 255, 255, 0.98); padding: 35px 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.06); border: 1px solid var(--border-color); }
         
         /* Tabs */
         .tabs { display: flex; gap: 15px; margin-bottom: 30px; border-bottom: 3px solid var(--border-color); padding-bottom: 0;}
-        .tab-btn { padding: 16px 30px; border: none; background: transparent; font-size: 15.5px; font-family: 'Nunito', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; cursor: pointer; border-radius: 14px 14px 0 0; transition: 0.3s;}
+        .tab-btn { padding: 16px 30px; border: none; background: transparent; font-size: 15.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; cursor: pointer; border-radius: 14px 14px 0 0; transition: 0.3s;}
         .tab-btn:hover { background: #f1f5f9; color: var(--primary-orange); }
         .tab-btn.active { background: white; color: var(--dark-orange); border: 3px solid var(--border-color); border-bottom: 3px solid white; margin-bottom: -3px; box-shadow: 0 -4px 10px rgba(0,0,0,0.02);}
         .tab-content { display: none; }
@@ -35,7 +44,7 @@
         /* Tiện ích Buttons */
         .action-bar { display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center; flex-wrap: wrap; gap: 15px;}
         .btn { padding: 12px 22px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 14px; color: white; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; font-family: inherit; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.15);}
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); filter: brightness(0.95); }
         .btn-random { background: linear-gradient(135deg, var(--info), #0284c7); }
         .btn-save { background: linear-gradient(135deg, var(--success), #059669); }
         .btn-export { background: linear-gradient(135deg, #f59e0b, #d97706); }
@@ -129,13 +138,9 @@
         #printDutyContainer { display: none; }
         .print-only-header { display: none; }
 
-        /* ==========================================
-           CSS CHUẨN IN ẤN
-           ========================================== */
         @media print {
             body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;}
             
-            /* TRƯỜNG HỢP 1: IN LỊCH TRỰC NHẬT */
             body.print-duty-mode * { visibility: hidden; }
             body.print-duty-mode #printDutyContainer,
             body.print-duty-mode #printDutyContainer * { visibility: visible; }
@@ -147,7 +152,6 @@
             .print-header { text-align: center; margin-bottom: 30px; font-family: 'Times New Roman', serif;}
             .print-header h2 { font-size: 20pt; text-transform: uppercase; margin: 0; font-weight: bold;}
 
-            /* TRƯỜNG HỢP 2: IN SƠ ĐỒ LỚP */
             body:not(.print-duty-mode) * { visibility: hidden; }
             body:not(.print-duty-mode) #tab-sodo, 
             body:not(.print-duty-mode) #tab-sodo * { visibility: visible; }
@@ -183,6 +187,7 @@
 <div class="header">
     <a href="index.html" class="btn-back">⬅ Quay Lại Trang Chủ</a>
     <h1>SƠ ĐỒ LỚP & THEO DÕI TRỰC NHẬT</h1>
+    <button class="btn-logout" onclick="logout()" title="Đăng xuất khỏi hệ thống">Đăng xuất</button>
 </div>
 
 <div class="container">
@@ -195,7 +200,6 @@
     <!-- TAB 1: SƠ ĐỒ CHỖ NGỒI -->
     <div id="tab-sodo" class="tab-content active">
 
-        <!-- THÔNG TIN LỚP HỌC -->
         <div class="class-info-panel">
             <div>
                 <label>Lớp</label>
@@ -223,7 +227,6 @@
             <button class="btn btn-export" onclick="window.print()">🖨️ In Sơ Đồ Lớp</button>
         </div>
 
-        <!-- TIÊU ĐỀ ẨN (CHỈ HIỆN KHI IN SƠ ĐỒ) -->
         <div class="print-only-header">
             <h2>SƠ ĐỒ CHỖ NGỒI LỚP <span id="pr-class"></span></h2>
             <div class="print-info-row">
@@ -334,22 +337,77 @@
     </div>
 </div>
 
-<!-- CONTAINER ĐỂ IN DANH SÁCH TRỰC NHẬT MÀ KHÔNG BỊ DÍNH GIAO DIỆN -->
 <div id="printDutyContainer"></div>
 
 <script>
+    // --- CHÌA KHÓA FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCbA_3aOK2tOHFpWpJBnOMgcDfTHNf5pro",
+        authDomain: "quanlylop-ntb.firebaseapp.com",
+        projectId: "quanlylop-ntb",
+        storageBucket: "quanlylop-ntb.firebasestorage.app",
+        messagingSenderId: "332000248751",
+        appId: "1:332000248751:web:ebb85e784b5bde121e255a",
+        measurementId: "G-7DZQL7ELDQ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let currentUser = null;
+
     let studentsData = [];
     let deskMap = { "Tổ 1": {}, "Tổ 2": {}, "Tổ 3": {}, "Tổ 4": {} };
     let maleCount = 0;
     let femaleCount = 0;
 
-    window.onload = function() {
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            syncFromCloud();
+        } else {
+            window.location.href = 'login.html';
+        }
+    });
+
+    function logout() {
+        auth.signOut();
+    }
+
+    function saveToCloud() {
+        if(!currentUser) return;
+        let dataToSave = {};
+        const allowedKeys = ['AppConfig_Master', 'DuLieu_Lop11_Master', 'Seating_Lop11', 'SeatingLayout_Lop11', 'DutySchedule_Lop11', 'DutyWeek_Lop11', 'DutyHistory_Lop11', 'DutyPairIndex_Lop11', 'SoDo_Config', 'AssignedTasks_Lop11'];
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (allowedKeys.includes(key) || key.startsWith('doc_') || key.startsWith('excel_doc_')) {
+                dataToSave[key] = localStorage.getItem(key);
+            }
+        }
+        dataToSave.lastUpdated = firebase.firestore.FieldValue.serverTimestamp();
+        db.collection("quanlylop_data").doc(currentUser.uid).set(dataToSave, { merge: true }).catch(err => console.error(err));
+    }
+
+    function syncFromCloud() {
+        db.collection("quanlylop_data").doc(currentUser.uid).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                for (let key in data) {
+                    if (key !== 'lastUpdated') {
+                        localStorage.setItem(key, data[key]);
+                    }
+                }
+            }
+            initPageData();
+        });
+    }
+
+    function initPageData() {
         const rawData = localStorage.getItem('DuLieu_Lop11_Master');
         if (rawData) {
             studentsData = JSON.parse(rawData);
         }
         
-        // CƠ CHẾ BẢO VỆ CHỐNG KẸT DỮ LIỆU CŨ KHI ĐÃ XÓA TRANG CHỦ
         if (studentsData.length === 0) {
             document.getElementById('deskGrid').innerHTML = "<div style='grid-column: span 4; text-align:center; padding: 50px; color:#94a3b8; font-size:16px;'>Chưa có dữ liệu học sinh. Vui lòng nạp danh sách ở trang chủ.</div>";
             document.getElementById('scheduleBody').innerHTML = "<tr><td colspan='6' class='text-center' style='color:var(--danger); font-weight:bold; padding:40px;'>Không có dữ liệu học sinh để chia trực nhật</td></tr>";
@@ -357,7 +415,6 @@
             return;
         }
 
-        // Validate Sơ đồ & Trực nhật cũ xem có khớp với sĩ số lớp mới không
         const savedSeating = localStorage.getItem('Seating_Lop11');
         if (savedSeating) {
             const seating = JSON.parse(savedSeating);
@@ -380,7 +437,7 @@
             }
         }
 
-        // Tính Nam/Nữ
+        maleCount = 0; femaleCount = 0;
         studentsData.forEach(s => {
             let gt = (s["Giới Tính"] || s["Giới tính"] || "").toLowerCase();
             if (gt.includes('nam')) maleCount++; else femaleCount++;
@@ -388,12 +445,14 @@
 
         initSeatingChart();
         loadSeating();
-        loadClassInfo(); // Tải thông tin lớp học tự động
+        loadClassInfo(); 
         
         extractDeskMap();
         initDailyDutyTable();
         loadDuty();
         checkDutyWarnings();
+        
+        if (document.getElementById('tab-thongke').classList.contains('active')) renderStatistics();
     }
 
     function switchTab(tabId, btn) {
@@ -406,9 +465,6 @@
         if(tabId === 'tab-thongke') { renderStatistics(); }
     }
 
-    // ==========================================
-    // MODULE: THÔNG TIN LỚP & IN ẤN SƠ ĐỒ
-    // ==========================================
     function loadClassInfo() {
         let appConfig = JSON.parse(localStorage.getItem('AppConfig_Master')) || { className: "", teacherName: "" };
         let sodoConfig = JSON.parse(localStorage.getItem('SoDo_Config')) || { lop: appConfig.className, gvcn: appConfig.teacherName, phong: "" };
@@ -429,6 +485,7 @@
         };
         localStorage.setItem('SoDo_Config', JSON.stringify(config));
         updatePrintHeaders();
+        saveToCloud();
     }
 
     function updatePrintHeaders() {
@@ -444,9 +501,6 @@
         document.getElementById('pr-female').innerText = femaleCount;
     }
 
-    // ==========================================
-    // MODULE 1: SƠ ĐỒ LỚP HỌC
-    // ==========================================
     function getStudentOptions() {
         let opts = `<option value="">-- Trống --</option>`;
         studentsData.forEach((s, i) => {
@@ -576,6 +630,7 @@
         };
         localStorage.setItem('SeatingLayout_Lop11', JSON.stringify(layoutConfig));
         extractDeskMap();
+        saveToCloud();
         alert("💾 Đã lưu Sơ đồ!");
     }
 
@@ -632,9 +687,6 @@
         }
     }
 
-    // ==========================================
-    // MODULE 2: BẢNG PHÂN CÔNG TRỰC NHẬT LIÊN KẾT
-    // ==========================================
     function getPunishedStudentsOptions() {
         let opts = `<option value="">-- Chọn HS bị phạt --</option>`;
         let hasPunish = false;
@@ -685,7 +737,7 @@
         
         let d = new Date(picker.value);
         let day = d.getDay() || 7; 
-        if(day !== 1) d.setDate(d.getDate() - (day - 1)); // Lùi về Thứ 2
+        if(day !== 1) d.setDate(d.getDate() - (day - 1)); 
 
         for(let i=0; i<5; i++) {
             let curD = new Date(d);
@@ -836,7 +888,6 @@
         return masterPairs;
     }
 
-    // TÍNH NĂNG MỚI: PHÂN CÔNG LẠI TỪ ĐẦU (RESET)
     function resetDutyList() {
         if(!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa TOÀN BỘ phân công trực nhật hiện tại và bắt đầu lại từ đầu? Lịch sử trực nhật đã lưu vẫn sẽ được giữ lại.")) return;
         
@@ -845,16 +896,14 @@
         
         initDailyDutyTable();
         for(let i=0; i<5; i++) onDutyGroupChange(i);
-        
+        saveToCloud();
         alert("🔄 Đã reset danh sách phân công trực nhật thành công!");
     }
 
-    // LOGIC ĐÃ ĐƯỢC CHỈNH SỬA: Tự động dò tìm bàn cuối cùng của tuần hiện tại làm mốc
     function assignSequentialDuty() {
         let masterPairs = getSequentialPairs();
         if(masterPairs.length === 0) { alert("Sơ đồ lớp chưa có học sinh!"); return; }
 
-        // B1: Tìm xem bàn cuối cùng được trực hợp lệ trong bảng hiển thị là bàn nào
         let lastValidIndex = -1;
         for(let i=4; i>=0; i--) {
             let grp = document.getElementById(`duty_group_${i}`).value;
@@ -868,15 +917,13 @@
             }
         }
 
-        // B2: Xác định index phân công tiếp theo
         let nextIndex = 0;
         if (lastValidIndex !== -1) {
-            nextIndex = lastValidIndex + 1; // Lấy bàn tiếp theo
+            nextIndex = lastValidIndex + 1; 
         } else {
             nextIndex = parseInt(localStorage.getItem('DutyPairIndex_Lop11')) || 0;
         }
 
-        // B3: Thực hiện gán vào bảng
         for(let i=0; i<5; i++) {
             let current = masterPairs[nextIndex % masterPairs.length];
             document.getElementById(`duty_group_${i}`).value = current.group;
@@ -886,7 +933,6 @@
             nextIndex++;
         }
         
-        // Lưu mốc mới này lại để phòng hờ
         localStorage.setItem('DutyPairIndex_Lop11', nextIndex);
     }
 
@@ -916,7 +962,7 @@
             document.getElementById(`task_other_${i}`).value = '';
         }
 
-        assignSequentialDuty(); // Sẽ chạy với thuật toán thông minh dò theo giao diện đã chỉnh sửa
+        assignSequentialDuty(); 
     }
 
     function saveDuty() {
@@ -952,7 +998,6 @@
             let eval1 = document.getElementById(`duty_eval_s1_${i}`).value;
             let eval2 = document.getElementById(`duty_eval_s2_${i}`).value;
 
-            // XỬ LÝ CHỐT KỶ LUẬT TỰ ĐỘNG
             if (group === "PHAT" && hs1 !== "" && eval1 === "Tốt") {
                 let s = master[hs1];
                 if (s && s.logs && s.logs.xuly) {
@@ -974,7 +1019,7 @@
             });
         }
         
-        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(master)); // Save Auto-resolve
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(master)); 
         localStorage.setItem('DutySchedule_Lop11', JSON.stringify(dutyData));
         localStorage.setItem('DutyWeek_Lop11', weekDate);
 
@@ -982,6 +1027,7 @@
         history[weekDate] = dutyData;
         localStorage.setItem('DutyHistory_Lop11', JSON.stringify(history));
 
+        saveToCloud();
         alert("💾 Đã lưu vào Bảng Trực và Ghi nhận Lịch sử Thống kê thành công!");
         checkDutyWarnings();
         if (document.getElementById('tab-thongke').classList.contains('active')) renderStatistics();
@@ -1029,7 +1075,6 @@
         }
     }
 
-    // TÍNH NĂNG MỚI: IN DANH SÁCH TRỰC NHẬT THEO TUẦN
     function printDuty() {
         let week = document.getElementById('weekPicker').value;
         if(!week) { alert("Vui lòng chọn tuần trực trước khi in!"); return; }
@@ -1102,14 +1147,11 @@
         html += `</tbody></table>`;
         document.getElementById('printDutyContainer').innerHTML = html;
         
-        // Chuyển sang chế độ in Trực nhật
         document.body.classList.add('print-duty-mode');
         window.print();
-        // Thoát chế độ in sau khi hoàn tất
         document.body.classList.remove('print-duty-mode');
     }
 
-    // --- HỆ THỐNG CẢNH BÁO ---
     function checkDutyWarnings() {
         const history = JSON.parse(localStorage.getItem('DutyHistory_Lop11')) || {};
         let badCounts = {};
@@ -1140,9 +1182,6 @@
         }
     }
 
-    // ==========================================
-    // MODULE 3: THỐNG KÊ 
-    // ==========================================
     function renderStatistics() {
         const history = JSON.parse(localStorage.getItem('DutyHistory_Lop11')) || {};
         let stats = {};
@@ -1209,6 +1248,7 @@
             localStorage.removeItem('DutyHistory_Lop11');
             renderStatistics();
             checkDutyWarnings();
+            saveToCloud();
             alert("Đã xóa sạch lịch sử thống kê.");
         }
     }

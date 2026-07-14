@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kết Quả Rèn Luyện - GVCN Cam Bích Hằng</title>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
@@ -17,7 +22,6 @@
             --bg-body: #f8fafc; --card-bg: #ffffff;
         }
 
-        /* Ép đồng bộ Font chữ cho TẤT CẢ các thành phần trên web để chống lỗi font */
         body, input, select, button, textarea { 
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             color: var(--text-main); 
@@ -35,6 +39,9 @@
         .header h1 { margin: 0 0 5px 0; font-weight: 900; font-size: 1.9em; text-transform: uppercase; letter-spacing: 0.5px;}
         .btn-back { position: absolute; left: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;}
         .btn-back:hover { background: white; color: var(--dark-orange); box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+        
+        .btn-logout { position: absolute; right: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px; cursor: pointer;}
+        .btn-logout:hover { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);}
 
         .container { max-width: 1300px; margin: 0 auto 50px auto; background: rgba(255, 255, 255, 0.98); padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
         
@@ -224,9 +231,11 @@
 <div class="header">
     <a href="index.html" class="btn-back">⬅ Quay Lại Trang Chủ</a>
     <h1>NHẬT KÝ RÈN LUYỆN & THEO DÕI NỀ NẾP</h1>
+    <button class="btn-logout" onclick="logout()" title="Đăng xuất khỏi hệ thống">Đăng xuất</button>
 </div>
 
 <div class="container">
+    <!-- KHU VỰC NHẬP LIỆU -->
     <div class="input-section">
         <h2>📝 Ghi Nhận Dữ Liệu Nhanh</h2>
         <div class="form-grid">
@@ -270,6 +279,7 @@
         </div>
     </div>
 
+    <!-- BẢNG TỔNG HỢP -->
     <div class="table-header-flex">
         <h2 style="margin: 0; color: var(--text-main); font-weight: 900; font-size: 20px;">BẢNG ĐÁNH GIÁ TỔNG HỢP</h2>
         <button class="btn-export-class" onclick="exportClassExcel()">📊 Xuất Báo Cáo Lớp (Excel)</button>
@@ -290,11 +300,15 @@
                 </tr>
             </thead>
             <tbody id="rlTableBody">
-                </tbody>
+                <!-- Data will be loaded here -->
+            </tbody>
         </table>
     </div>
 </div>
 
+<!-- ========================================================== -->
+<!-- MODAL CHI TIẾT KẾT QUẢ RÈN LUYỆN (GIAO DIỆN PASTEL) -->
+<!-- ========================================================== -->
 <div id="viewRenLuyenModal" class="modal-overlay">
     <div class="modal-content p-modal-content">
         <button class="close-btn" onclick="closeModal('viewRenLuyenModal')">✕</button>
@@ -303,6 +317,7 @@
             <h2>📊 KẾT QUẢ RÈN LUYỆN: <span id="rl-title-name" style="color: var(--dark-orange);"></span></h2>
         </div>
 
+        <!-- Bảng điểm chi tiết -->
         <div class="p-score-board">
             <div class="p-score-item">
                 <label>Điểm Gốc Đầu Kì</label>
@@ -323,11 +338,13 @@
         </div>
         
         <div class="p-grid">
+            <!-- Cột Vi Phạm -->
             <div class="p-card p-card-red">
-                <h3>⚠️ VI PHẠM Nề Nếp & NGHỈ HỌC (<span id="dt-count-vp">0</span>)</h3>
+                <h3>⚠️ VI PHẠM NỀ NẾP & NGHỈ HỌC (<span id="dt-count-vp">0</span>)</h3>
                 <div id="rl-vipham" class="p-list"></div>
             </div>
             
+            <!-- Cột Phong Trào -->
             <div class="p-card p-card-blue">
                 <h3>🏆 HOẠT ĐỘNG & PHONG TRÀO (<span id="dt-count-pt">0</span>)</h3>
                 <div id="rl-phongtrao" class="p-list"></div>
@@ -335,11 +352,13 @@
         </div>
 
         <div class="p-grid" style="margin-bottom: 0;">
+            <!-- Cột Nhận Xét Hệ Thống -->
             <div class="p-card p-card-purple">
                 <h3>💡 NHẬN XÉT CỦA HỆ THỐNG</h3>
                 <div id="rl-nhanxet" class="p-content-box"></div>
             </div>
 
+            <!-- Cột Xếp Loại -->
             <div class="p-card p-card-orange">
                 <label>XẾP LOẠI RÈN LUYỆN HIỆN TẠI</label>
                 <div id="rl-ketqua" style="font-size: 36px; font-weight: 900; text-transform: uppercase; margin-top: 10px;"></div>
@@ -355,6 +374,21 @@
 </div>
 
 <script>
+    // --- CHÌA KHÓA FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCbA_3aOK2tOHFpWpJBnOMgcDfTHNf5pro",
+        authDomain: "quanlylop-ntb.firebaseapp.com",
+        projectId: "quanlylop-ntb",
+        storageBucket: "quanlylop-ntb.firebasestorage.app",
+        messagingSenderId: "332000248751",
+        appId: "1:332000248751:web:ebb85e784b5bde121e255a",
+        measurementId: "G-7DZQL7ELDQ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let currentUser = null;
+
     let studentsData = [];
     let currentDetailIndex = -1;
 
@@ -362,14 +396,56 @@
     const SEVERE_KEYWORDS = ['thi cử', 'thi hk1', 'thi hk2', 'kttthk', 'kthk', 'gian lận', 'đánh nhau', 'thuốc lá', 'hút thuốc', 'vô lễ', 'xúc phạm'];
     const ACADEMIC_KEYWORDS = ['thuộc bài', 'làm bài', 'học bài', 'chuẩn bị', 'bài tập', 'tài liệu', 'dụng cụ', 'học tập', 'đề cương', 'chép bài'];
 
-    window.onload = function() {
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            syncFromCloud();
+        } else {
+            window.location.href = 'login.html';
+        }
+    });
+
+    function logout() {
+        auth.signOut();
+    }
+
+    function saveToCloud() {
+        if(!currentUser) return;
+        let dataToSave = {};
+        const allowedKeys = ['AppConfig_Master', 'DuLieu_Lop11_Master', 'Seating_Lop11', 'SeatingLayout_Lop11', 'DutySchedule_Lop11', 'DutyWeek_Lop11', 'DutyHistory_Lop11', 'DutyPairIndex_Lop11', 'SoDo_Config', 'AssignedTasks_Lop11'];
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (allowedKeys.includes(key) || key.startsWith('doc_') || key.startsWith('excel_doc_')) {
+                dataToSave[key] = localStorage.getItem(key);
+            }
+        }
+        dataToSave.lastUpdated = firebase.firestore.FieldValue.serverTimestamp();
+        db.collection("quanlylop_data").doc(currentUser.uid).set(dataToSave, { merge: true }).catch(err => console.error(err));
+    }
+
+    function syncFromCloud() {
+        db.collection("quanlylop_data").doc(currentUser.uid).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                for (let key in data) {
+                    if (key !== 'lastUpdated') {
+                        localStorage.setItem(key, data[key]);
+                    }
+                }
+            }
+            initPageData();
+        });
+    }
+
+    function initPageData() {
         document.getElementById('txtDateVang').valueAsDate = new Date();
 
         const rawData = localStorage.getItem('DuLieu_Lop11_Master');
         if (rawData) {
             studentsData = JSON.parse(rawData);
             
-            // Auto-Migration: Dọn dẹp các lỗi vắng học cũ bị phân loại nhầm vào nhóm vi phạm
+            // Auto-Migration
             studentsData = studentsData.map(s => {
                 if (!s.logs) s.logs = { vipham: [], phongtrao: [], vangCoPhep: [], vangKhongPhep: [] };
                 if (!s.logs.vangCoPhep) s.logs.vangCoPhep = [];
@@ -409,9 +485,6 @@
         });
     }
 
-    // ========================================================
-    // ENGINE TÍNH ĐIỂM & KHỐNG CHẾ TRẦN (CEILING + OFFSET)
-    // ========================================================
     function calculatePoints(student) {
         let ptCount = student.logs.phongtrao.length;
         let cpCount = student.logs.vangCoPhep.length;
@@ -422,7 +495,6 @@
         let standardVpCount = 0;
         let missedPtCount = 0;
         
-        // Phân tách lỗi "Chưa hoàn thành nhiệm vụ" sang phần Phong trào
         student.logs.vipham.forEach(log => {
             let txt = log.text.toLowerCase();
             if (txt.includes('chưa hoàn thành công việc được giao')) {
@@ -433,33 +505,28 @@
                     deductVp += 4;
                     severeCount++;
                 } else if (ACADEMIC_KEYWORDS.some(kw => txt.includes(kw))) {
-                    deductVp += 1; // Lỗi học tập trừ 1đ
+                    deductVp += 1; 
                 } else {
-                    deductVp += 2; // Lỗi thường trừ 2đ
+                    deductVp += 2; 
                 }
             }
         });
 
-        // Điểm trừ nghỉ học
         let deductKp = kpCount * 2; 
         let deductCp = Math.max(0, cpCount - 4) * 1; 
         let totalDeduct = deductVp + deductKp + deductCp;
 
-        // Tính "Số lượng lỗi gốc" để đưa vào Khung khống chế
         let rawErrors = standardVpCount + kpCount + Math.max(0, cpCount - 4);
 
-        // Bù trừ: 5 HĐ -> Xóa 1 lỗi gốc. 8 HĐ -> Xóa 2 lỗi gốc
         let errorReduced = 0;
         if (ptCount >= 8) errorReduced = 2;
         else if (ptCount >= 5) errorReduced = 1;
 
         let finalErrors = Math.max(0, rawErrors - errorReduced);
 
-        // Tính điểm tổng (Hoạt động tốt: +1, Thiếu hoạt động: -1)
         let totalBonus = (ptCount * 1) - (missedPtCount * 1); 
         let finalScore = Math.min(100, 100 - totalDeduct + totalBonus);
 
-        // Xếp Loại: Kết hợp Điểm Số và Khung Khống Chế
         let rank = ""; let rankClass = ""; let color = "";
         
         if (severeCount > 0 || finalErrors > 10 || finalScore < 70) {
@@ -472,7 +539,6 @@
             rank = "TỐT"; rankClass = "rank-tot"; color = "var(--success)";
         }
 
-        // Cảnh báo nề nếp
         let warningHtml = ""; let warningText = "";
         if (severeCount > 0 || finalScore < 70) {
             warningHtml = '<span class="status-badge status-alert">🚨 Báo Động</span>'; warningText = "Báo động";
@@ -492,7 +558,6 @@
         };
     }
 
-    // TẠO NHẬN XÉT TỰ ĐỘNG
     function generateTeacherComment(scoreObj) {
         let klTxt = ""; let ptTxt = ""; let ccTxt = "";
 
@@ -578,7 +643,6 @@
             const vpArray = vpRaw.split(/[,;]+/).map(i => i.trim()).filter(i => i !== "");
             vpArray.forEach(text => { 
                 const upperText = text.toUpperCase();
-                // Phân tích đầu vào thông minh
                 if (/^CP[\s:\-\(]/i.test(text) || upperText === 'CP') {
                     let reason = text.replace(/^CP[\s:\-\(]*/i, '').replace(/\)$/, '').trim() || "Không ghi chú";
                     studentsData[idx].logs.vangCoPhep.push({ id: Date.now() + Math.random(), text: reason, date: now });
@@ -604,6 +668,7 @@
         }
 
         localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+        saveToCloud();
         
         document.getElementById('txtViPham').value = "";
         document.getElementById('txtPhongTrao').value = "";
@@ -630,7 +695,6 @@
     function renderLogLists(student) {
         const sc = calculatePoints(student);
         
-        // Cập nhật số lượng
         document.getElementById('dt-count-vp').innerText = sc.standardVpCount + sc.kpCount + sc.cpCount;
         
         let ptSummaryStr = sc.ptCount;
@@ -660,7 +724,6 @@
 
         document.getElementById('rl-nhanxet').innerHTML = generateTeacherComment(sc);
 
-        // Render Danh sách Vi Phạm (Không bao gồm Chưa hoàn thành HĐ)
         const standardVpLogs = student.logs.vipham.filter(log => !log.text.toLowerCase().includes('chưa hoàn thành công việc được giao'));
         const vpList = document.getElementById('rl-vipham');
         let vpHTML = "";
@@ -705,7 +768,6 @@
             ? `<div class="p-list-item" style="background:transparent; border-bottom: none;"><div class="p-list-content"><span class="p-icon-check" style="color:var(--success);">✔️</span> <div style="color:var(--success);">Chưa ghi nhận vi phạm nề nếp nào, đáng khen!</div></div></div>` 
             : vpHTML;
 
-        // Render Danh sách Phong Trào (Bao gồm Chưa hoàn thành HĐ)
         const ptList = document.getElementById('rl-phongtrao');
         const missedPtLogs = student.logs.vipham.filter(log => log.text.toLowerCase().includes('chưa hoàn thành công việc được giao'));
         let ptHTML = "";
@@ -738,6 +800,7 @@
         const s = studentsData[currentDetailIndex];
         s.logs[type] = s.logs[type].filter(log => log.id !== id);
         localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+        saveToCloud();
         renderLogLists(s); 
         renderTable();     
     }
@@ -751,6 +814,7 @@
                     return s;
                 });
                 localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+                saveToCloud();
                 renderTable();
                 alert("Đã reset sổ theo dõi thành công!");
             }

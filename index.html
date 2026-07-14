@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Quản Lý Lớp</title>
     
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -39,13 +40,14 @@
         .menu-card { background: white; border-radius: 12px; padding: 20px 15px; text-align: center; text-decoration: none; color: var(--text-main); box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; border-top: 4px solid #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
         .menu-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         .menu-icon { font-size: 35px; line-height: 1; }
-        .menu-title { font-size: 15px; font-weight: 800; margin: 0; text-transform: uppercase;}
+        .menu-title { font-size: 14px; font-weight: 800; margin: 0; text-transform: uppercase;}
         
         .c-1 { border-top-color: var(--info); } .c-1:hover .menu-title { color: var(--info); }
         .c-2 { border-top-color: var(--success); } .c-2:hover .menu-title { color: var(--success); }
+        .c-6 { border-top-color: #e84393; } .c-6:hover .menu-title { color: #e84393; }
         .c-3 { border-top-color: var(--danger); } .c-3:hover .menu-title { color: var(--danger); }
-        .c-4 { border-top-color: var(--purple); } .c-4:hover .menu-title { color: var(--purple); }
         .c-5 { border-top-color: #e67e22; } .c-5:hover .menu-title { color: #e67e22; }
+        .c-4 { border-top-color: var(--purple); } .c-4:hover .menu-title { color: var(--purple); }
 
         /* KHU VỰC DANH SÁCH HỌC SINH & NẠP DỮ LIỆU */
         .list-section { background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e2e8f0;}
@@ -179,6 +181,7 @@
     </div>
 
     <div class="container">
+        <!-- BẢNG ĐIỀU KHIỂN - MENU (ĐÃ BỔ SUNG NÚT KQRL) -->
         <div class="menu-grid">
             <a href="sodolop.html" class="menu-card c-1">
                 <div class="menu-icon" style="color: var(--info);">🗺️</div>
@@ -187,6 +190,10 @@
             <a href="phancongcongviec.html" class="menu-card c-2">
                 <div class="menu-icon" style="color: var(--success);">🎯</div>
                 <h3 class="menu-title">Giao Nhiệm Vụ</h3>
+            </a>
+            <a href="kqrl.html" class="menu-card c-6">
+                <div class="menu-icon" style="color: #e84393;">📝</div>
+                <h3 class="menu-title">Nhật Ký KQRL</h3>
             </a>
             <a href="xulyvipham.html" class="menu-card c-3">
                 <div class="menu-icon" style="color: var(--danger);">⚖️</div>
@@ -202,6 +209,7 @@
             </div>
         </div>
 
+        <!-- DANH SÁCH LỚP HỌC -->
         <div class="list-section">
             <div class="list-header">
                 <h2>📋 DANH SÁCH LỚP CHỦ NHIỆM</h2>
@@ -239,6 +247,7 @@
         </div>
     </div>
 
+    <!-- MODAL CÀI ĐẶT THÔNG TIN LỚP (CONFIG MODAL) -->
     <div id="configModal" class="modal-overlay">
         <div class="modal-content" style="width: 500px; border-top-color: var(--primary-orange);">
             <button class="close-btn" onclick="closeModal('configModal')">✕</button>
@@ -263,6 +272,7 @@
         </div>
     </div>
 
+    <!-- MODAL XEM HỒ SƠ CHI TIẾT (VIEW PROFILE) -->
     <div id="viewProfileModal" class="modal-overlay">
         <div class="modal-content" style="border-top-color: var(--info); width: 850px;">
             <button class="close-btn" onclick="closeModal('viewProfileModal')">✕</button>
@@ -278,7 +288,7 @@
                     <span id="vp-stt" style="background:#eee; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:bold; color:#555;">STT: 0</span>
                 </div>
                 <div class="profile-right">
-                    <h3 class="info-group-title">1. Thông tin cơ bản</h3>
+                    <h3 class="info-group-title">1. Thông kết cơ bản</h3>
                     <div class="info-grid-2">
                         <div class="info-row"><span>Ngày sinh:</span><b id="vp-dob">--</b></div>
                         <div class="info-row"><span>Giới tính:</span><b id="vp-gender">--</b></div>
@@ -305,6 +315,7 @@
         </div>
     </div>
 
+    <!-- MODAL SỬA HỒ SƠ (EDIT PROFILE FULL) -->
     <div id="editProfileModal" class="modal-overlay">
         <div class="modal-content" style="width: 850px; border-top-color: var(--warning);">
             <button class="close-btn" onclick="closeModal('editProfileModal')">✕</button>
@@ -348,6 +359,7 @@
         </div>
     </div>
 
+    <!-- MODAL KẾT QUẢ RÈN LUYỆN CÁ NHÂN -->
     <div id="studentKqrlModal" class="modal-overlay">
         <div class="modal-content" style="border-top-color: var(--success); width: 900px;">
             <button class="close-btn" onclick="closeModal('studentKqrlModal')">✕</button>
@@ -384,6 +396,7 @@
         </div>
     </div>
 
+    <!-- MODAL TỔNG QUAN LỚP HỌC (KQRL CHUNG) -->
     <div id="kqrlOverviewModal" class="modal-overlay">
         <div class="modal-content" style="border-top-color: var(--purple);">
             <button class="close-btn" onclick="closeModal('kqrlOverviewModal')">✕</button>
@@ -404,6 +417,7 @@
         </div>
     </div>
 
+    <!-- KHUNG IN BÁO CÁO RÈN LUYỆN (CHỈ HIỆN KHI IN) -->
     <div id="printContainer">
         <div class="print-header">
             <h1>BÁO CÁO KẾT QUẢ RÈN LUYỆN</h1>
