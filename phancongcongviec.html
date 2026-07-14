@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân Công Nhiệm Vụ - GVCN Cam Bích Hằng</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary-orange: #f97316; --dark-orange: #ea580c; --light-orange: #fff7ed;
+            --info: #0ea5e9; --info-dark: #0284c7; --info-light: #e0f2fe;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --purple: #8b5cf6;
+            --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+            --bg-body: #f8fafc; --card-bg: #ffffff;
+        }
+
+        body { font-family: 'Roboto', system-ui, -apple-system, sans-serif; background-color: var(--bg-body); background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 30px 30px; margin: 0; color: var(--text-main); line-height: 1.5; }
+        
+        .header { background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange)); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 10px 30px rgba(234, 88, 12, 0.2); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 40px; position: relative;}
+        .header h1 { margin: 0 0 5px 0; font-weight: 900; font-size: 1.9em; text-transform: uppercase; letter-spacing: 0.5px;}
+        .btn-back { position: absolute; left: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;}
+        .btn-back:hover { background: white; color: var(--dark-orange); box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+
+        .container { max-width: 1350px; margin: 0 auto 50px auto; background: rgba(255, 255, 255, 0.98); padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        
+        /* Bộ lọc phân công */
+        .filter-section { background: var(--card-bg); padding: 30px; border-radius: 16px; border: 2px dashed var(--info); margin-bottom: 35px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .filter-section h2 { margin-top: 0; color: var(--info-dark); font-size: 1.5em; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; font-weight: 900; justify-content: space-between;}
+        
+        .mode-selection { display: flex; gap: 30px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
+        .radio-label { display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; color: var(--text-main); font-size: 15px; padding: 10px 20px; background: var(--bg-body); border-radius: 12px; border: 1px solid var(--border-color); transition: 0.2s;}
+        .radio-label:hover { border-color: var(--info); }
+        .radio-label input[type="radio"] { width: 18px; height: 18px; accent-color: var(--info); cursor: pointer; }
+
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr auto; gap: 20px; align-items: end; }
+        @media (max-width: 1100px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+        
+        .form-group { text-align: left; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px;}
+        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 15px; transition: all 0.3s; color: var(--text-main); background: white;}
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--info); box-shadow: 0 0 0 3px var(--info-light); }
+        .form-group input:disabled { background: #f1f5f9; cursor: not-allowed; color: #94a3b8; border-color: #e2e8f0; }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; transition: 0.3s; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; box-sizing: border-box; font-family: inherit; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); filter: brightness(1.05); }
+        .btn-filter { background: linear-gradient(135deg, var(--info), var(--info-dark)); }
+        .btn-export { background: linear-gradient(135deg, var(--success), #059669); }
+        .btn-print { background: linear-gradient(135deg, #0284c7, #0369a1); box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3); border: 1px solid #bae6fd; font-weight: 900; letter-spacing: 0.5px;}
+        .btn-print:hover { background: linear-gradient(135deg, #0369a1, #075985); }
+        .btn-review { background: linear-gradient(135deg, var(--purple), #6d28d9); height: 42px; padding: 0 20px; font-size: 14px; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); border-radius: 10px;}
+        .btn-sync { background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange)); }
+
+        /* Bảng danh sách */
+        .table-container { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-color); margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
+        th { background: #f1f5f9; color: var(--text-main); padding: 16px 10px; font-weight: 900; text-transform: uppercase; font-size: 13px; white-space: nowrap; border-bottom: 2px solid var(--border-color); text-align: center;}
+        td { padding: 15px 10px; border-bottom: 1px solid var(--border-color); text-align: center; font-size: 14px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f8fafc; }
+
+        .talent-tag { display: inline-block; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; margin: 2px; }
+        .badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: white; border-radius: 50%; font-weight: 900; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .vp-badge { background: var(--danger); }
+        .vp-safe { background: var(--success); }
+        .pt-badge { background: var(--info); width: auto; padding: 0 10px; border-radius: 20px;}
+        
+        .empty-state { text-align: center; padding: 50px; color: var(--text-muted); font-style: italic; font-size: 15px;}
+
+        /* Custom Checkbox & Radio */
+        .cbx-container { display: block; position: relative; padding-left: 25px; margin-bottom: 20px; cursor: pointer; font-size: 18px; user-select: none; margin: 0 auto; width: 20px; }
+        .cbx-container input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        .checkmark { position: absolute; top: -10px; left: 0; height: 22px; width: 22px; background-color: white; border-radius: 6px; border: 2px solid #cbd5e1; transition: all 0.2s; }
+        .cbx-container:hover input ~ .checkmark { border-color: var(--info); }
+        .cbx-container input:checked ~ .checkmark { background-color: var(--info); border-color: var(--info); }
+        .checkmark:after { content: ""; position: absolute; display: none; }
+        .cbx-container input:checked ~ .checkmark:after { display: block; }
+        .cbx-container .checkmark:after { left: 7px; top: 3px; width: 5px; height: 10px; border: solid white; border-width: 0 3px 3px 0; transform: rotate(45deg); }
+        input.leader-radio { width: 22px; height: 22px; accent-color: var(--info-dark); cursor: pointer; }
+
+        .action-bar-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; padding-top: 25px; border-top: 2px dashed var(--border-color); flex-wrap: wrap; gap: 20px;}
+        .selected-count { font-size: 1.2em; font-weight: 700; color: var(--info-dark); background: var(--info-light); padding: 8px 15px; border-radius: 10px;}
+        .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+        
+        #fallbackWarning {
+            display: none; background: #fffbeb; border: 1px dashed var(--warning); 
+            color: #b45309; padding: 15px 20px; border-radius: 12px; 
+            font-size: 14.5px; margin-bottom: 25px; align-items: center; gap: 10px; font-weight: 500;
+        }
+
+        /* MODAL (QUẢN LÝ LỊCH SỬ & ĐIỂM DANH) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: 0.3s ease;}
+        .modal-overlay.active { display: flex; opacity: 1;}
+        .modal-content { background: var(--card-bg); border-radius: 16px; padding: 30px; position: relative; width: 850px; max-width: 95%; max-height: 90vh; display:flex; flex-direction: column; margin: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.95); transition: 0.3s; border-top: 6px solid var(--purple);}
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .close-btn { position: absolute; top: 20px; right: 20px; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--bg-body); font-weight: bold; font-size: 16px; color: var(--text-muted); transition: 0.2s; display:flex; align-items:center; justify-content:center;}
+        .close-btn:hover { background: var(--danger); color: white;}
+        .modal-header h2 { margin: 0 0 20px 0; font-size: 22px; font-weight: 900; color: var(--purple); text-transform: uppercase;}
+        
+        #pastTaskStudents, #allStudentsEditList { overflow-y: auto; max-height: 350px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; padding: 10px;}
+        .student-check-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px dashed #e2e8f0; cursor: pointer; transition: 0.2s; border-radius: 6px;}
+        .student-check-row:hover { background: #f8fafc; }
+        .student-check-row:last-child { border-bottom: none; }
+        .student-check-row input { width: 18px; height: 18px; margin-right: 15px; accent-color: var(--purple);}
+        .student-check-row span { font-weight: 700; font-size: 15px; color: var(--text-main);}
+
+        /* KHUNG CHỨA BẢNG IN */
+        #printContainer { display: none; }
+
+        /* CSS CHUẨN IN ẤN TRẮNG ĐEN (HỖ TRỢ LINH ĐỘNG NHIỀU TRANG) */
+        @media print {
+            body { background: white; margin: 0; padding: 0; }
+            body > *:not(#printContainer) { display: none !important; }
+            
+            #printContainer { 
+                position: static !important; 
+                display: block !important; 
+                width: 100%; 
+                font-family: 'Times New Roman', serif; 
+                color: #000; 
+                page-break-inside: auto; 
+            }
+            
+            .print-header { text-align: center; margin-bottom: 25px; }
+            .print-header h2 { font-size: 24px; text-transform: uppercase; margin: 0 0 8px 0; font-weight: bold;}
+            .print-header h3 { font-size: 16px; margin: 0; font-weight: normal; font-style: italic;}
+            
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 25px; page-break-inside: auto; }
+            .print-table tr { page-break-inside: avoid; page-break-after: auto; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 12px 10px; text-align: center; font-size: 15px; color: #000 !important; }
+            .print-table th { font-weight: bold; background: #f0f0f0 !important; -webkit-print-color-adjust: exact; text-transform: uppercase;}
+            .print-table td.text-left { text-align: left; }
+            
+            .print-sign { margin-top: 40px; display: flex; justify-content: flex-end; page-break-inside: avoid; }
+            .print-sign-box { width: 300px; text-align: center; }
+            .print-sign-box p { margin: 5px 0; font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="btn-back">⬅ Quay Lại Trang Chủ</a>
+    <h1>BỘ LỌC & PHÂN CÔNG NHIỆM VỤ</h1>
+</div>
+
+<div class="container">
+    <div class="filter-section">
+        <h2>
+            🎯 Tiêu Chí Phân Công
+            <button class="btn btn-review" onclick="openTaskManager()">⚙️ Quản Lý HĐ Đã Giao</button>
+        </h2>
+        
+        <div class="mode-selection">
+            <label class="radio-label">
+                <input type="radio" name="filterMode" value="nangkhieu" checked onchange="toggleMode()">
+                🎨 Theo năng khiếu (Văn nghệ, thể thao...)
+            </label>
+            <label class="radio-label">
+                <input type="radio" name="filterMode" value="chung" onchange="toggleMode()">
+                🧹 Công việc chung (Vệ sinh, dự lễ...)
+            </label>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label id="lblKeyword">Năng Khiếu / Sở Trường</label>
+                <input type="text" id="txtKeyword" placeholder="VD: bóng đá, hát, múa..." onkeypress="handleEnter(event)">
+            </div>
+            <div class="form-group">
+                <label>Giới Tính</label>
+                <select id="selGenderFilter">
+                    <option value="all">Tất cả</option>
+                    <option value="nam">Chỉ Nam</option>
+                    <option value="nữ">Chỉ Nữ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Số lượng cần</label>
+                <input type="number" id="txtQuantity" placeholder="VD: 10" min="1">
+            </div>
+            <div class="form-group">
+                <label>Tên Nhiệm Vụ Đang Giao</label>
+                <input type="text" id="txtTaskName" placeholder="VD: Dọn vệ sinh lớp..." onkeyup="checkTaskWarning()">
+            </div>
+            <div class="form-group">
+                <button class="btn btn-filter" onclick="filterStudents()">🔍 Lọc Danh Sách</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="fallbackWarning"></div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40px;">Chọn</th>
+                    <th style="width: 40px;">STT</th>
+                    <th style="min-width: 150px; text-align: left;">Họ và Tên</th>
+                    <th style="width: 70px;">Giới Tính</th>
+                    <th style="min-width: 100px;">Năng Khiếu</th>
+                    <th style="width: 50px;" title="Ưu tiên người có nhiều vi phạm lên trước">⚠️ VP</th>
+                    <th style="width: 50px;" title="Ai tham gia ít sẽ được ưu tiên">🏆 HĐ</th>
+                    <th style="min-width: 80px; color: var(--info-dark);">👑 Phụ Trách</th>
+                    <th style="min-width: 200px;">Lịch Sử HĐ Cũ</th>
+                </tr>
+            </thead>
+            <tbody id="resultTableBody">
+                <tr><td colspan="9" class="empty-state">Vui lòng thiết lập tiêu chí và bấm "Lọc Danh Sách".</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="action-bar-bottom" id="actionBar" style="display: none;">
+        <div class="selected-count">Đã chọn: <span id="countDisplay">0</span> học sinh</div>
+        <div class="action-buttons">
+            <button class="btn btn-export" onclick="exportSelected()">📊 Xuất File Excel</button>
+            <button class="btn btn-print" onclick="printSelected()">🖨️ In Danh Sách (Bản Đẹp)</button>
+            <button class="btn btn-sync" onclick="syncToRecords()">✅ Chốt Phân Công & Lưu H.Sơ</button>
+        </div>
+    </div>
+</div>
+
+<div id="taskManagerModal" class="modal-overlay">
+    <div class="modal-content" style="width: 850px;">
+        <button class="close-btn" onclick="closeModal('taskManagerModal')">✕</button>
+        <div class="modal-header">
+            <h2>⚙️ LỊCH SỬ CÁC NHIỆM VỤ ĐÃ GIAO</h2>
+        </div>
+        <div style="max-height: 450px; overflow-y: auto; margin-top: 10px;">
+            <table class="schedule-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="width: 15%; padding: 10px; border-bottom: 2px solid var(--border-color);">Ngày</th>
+                        <th style="width: 40%; text-align: left; padding: 10px; border-bottom: 2px solid var(--border-color);">Tên Nhiệm Vụ</th>
+                        <th style="width: 10%; padding: 10px; border-bottom: 2px solid var(--border-color);">Sĩ Số</th>
+                        <th style="width: 35%; padding: 10px; border-bottom: 2px solid var(--border-color);">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody id="taskManagerBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-content" style="width: 600px; border-top-color: var(--info-dark);">
+        <button class="close-btn" onclick="backToTaskManagerFromReview()">✕</button>
+        <div class="modal-header">
+            <h2 style="color: var(--info-dark);">👀 ĐIỂM DANH HOẠT ĐỘNG</h2>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight:700; color: var(--text-muted); font-size:14px; display:block; margin-bottom:5px;">Nhiệm vụ đang điểm danh:</label>
+            <div id="currentAttendanceTaskName" style="padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 15px; font-weight:bold; color:var(--info-dark);"></div>
+            <input type="hidden" id="currentAttendanceTaskId">
+        </div>
+        
+        <div style="font-size: 13px; color: var(--danger); font-style:italic; margin-bottom: 10px;">
+            * Bỏ tích những học sinh <b>không tham gia</b>. Hệ thống sẽ gỡ bỏ điểm phong trào và chuyển thành 1 lỗi vi phạm cho học sinh đó.
+        </div>
+
+        <div id="pastTaskStudents"></div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" style="background: var(--text-muted); color: white; width: 30%;" onclick="backToTaskManagerFromReview()">⬅ Quay Lại</button>
+            <button class="btn btn-sync" style="width: 70%; background: var(--info-dark);" onclick="saveAttendance()">💾 Lưu Điểm Danh</button>
+        </div>
+    </div>
+</div>
+
+<div id="editListModal" class="modal-overlay">
+    <div class="modal-content" style="width: 750px; border-top-color: var(--success);">
+        <button class="close-btn" onclick="backToTaskManagerFromEdit()">✕</button>
+        <div class="modal-header">
+            <h2 style="color: var(--success);">📝 ĐIỀU CHỈNH DANH SÁCH THAM GIA</h2>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight:700; color: var(--text-muted); font-size:14px; display:block; margin-bottom:5px;">Nhiệm vụ:</label>
+            <div id="editListName" style="padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 15px; font-weight:bold; color:var(--success);"></div>
+            <input type="hidden" id="editListTaskId">
+        </div>
+        
+        <div style="font-size: 13px; color: var(--text-muted); font-style:italic; margin-bottom: 10px;">
+            * Tích chọn để <b>THÊM</b> học sinh, hoặc bỏ tích để <b>RÚT</b> học sinh khỏi hoạt động này. Hệ thống sẽ tự động cộng/trừ điểm phong trào tương ứng.
+        </div>
+
+        <div id="allStudentsEditList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" style="background: var(--text-muted); color: white; width: 30%;" onclick="backToTaskManagerFromEdit()">⬅ Quay Lại</button>
+            <button class="btn btn-sync" style="width: 70%; background: var(--success);" onclick="saveEditList()">💾 Lưu Thay Đổi</button>
+        </div>
+    </div>
+</div>
+
+<div id="printContainer"></div>
+
+<script>
+    let currentFilteredList = [];
+
+    // TỰ ĐỘNG ĐỒNG BỘ CÁC HOẠT ĐỘNG CŨ VÀO HỆ THỐNG QUẢN LÝ
+    window.onload = function() {
+        autoSyncOldTasks();
+    };
+
+    function autoSyncOldTasks() {
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        if (!masterData) return;
+        
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let existingTaskIds = new Set(assignedTasks.map(t => t.id));
+        let taskMap = {}; 
+        let changed = false;
+
+        masterData.forEach((student, orgIdx) => {
+            if (student.logs && student.logs.phongtrao) {
+                student.logs.phongtrao.forEach(pt => {
+                    // Bỏ qua nếu đã được quản lý
+                    if (pt.id && existingTaskIds.has(pt.id)) {
+                        let t = assignedTasks.find(x => x.id === pt.id);
+                        if(t && !t.students.find(s => s.orgIdx === orgIdx)) {
+                            t.students.push({ orgIdx: orgIdx, present: true, originalText: pt.text });
+                            changed = true;
+                        }
+                        return;
+                    }
+                    
+                    // Nếu là HĐ cũ chưa có trong Quản lý, tiến hành gom nhóm
+                    let cleanName = pt.text.split('<br>')[0].replace(/✔️ |⚠️ Đã làm: /g, '').trim();
+                    let key = pt.date + '_' + cleanName;
+                    
+                    if (!taskMap[key]) {
+                        let newId = 'TASK_SYNC_' + Math.random().toString(36).substr(2, 9);
+                        taskMap[key] = {
+                            id: newId,
+                            name: cleanName,
+                            date: pt.date || new Date().toLocaleDateString('vi-VN'),
+                            students: []
+                        };
+                        assignedTasks.push(taskMap[key]);
+                        existingTaskIds.add(newId);
+                        changed = true;
+                    }
+                    
+                    pt.id = taskMap[key].id; 
+                    taskMap[key].students.push({
+                        orgIdx: orgIdx,
+                        present: true,
+                        originalText: pt.text
+                    });
+                });
+            }
+        });
+
+        if (changed) {
+            // Sắp xếp các task mới nhất lên trên
+            assignedTasks.sort((a, b) => {
+                let dA = a.date.split('/').reverse().join('');
+                let dB = b.date.split('/').reverse().join('');
+                return dB.localeCompare(dA);
+            });
+            localStorage.setItem('AssignedTasks_Lop11', JSON.stringify(assignedTasks));
+            localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(masterData));
+        }
+    }
+
+    function toggleMode() {
+        const mode = document.querySelector('input[name="filterMode"]:checked').value;
+        const kwInput = document.getElementById('txtKeyword');
+        
+        if (mode === 'chung') {
+            kwInput.value = '';
+            kwInput.disabled = true;
+            kwInput.placeholder = "Tải toàn bộ lớp (có thể lọc theo giới tính)";
+        } else {
+            kwInput.disabled = false;
+            kwInput.placeholder = "VD: bóng đá, hát, múa...";
+        }
+    }
+
+    function handleEnter(e) {
+        if(e.key === 'Enter') filterStudents();
+    }
+
+    function isSimilarTask(task1, task2) {
+        if (!task1 || !task2) return false;
+        let t1 = task1.toLowerCase().trim();
+        let t2 = task2.toLowerCase().trim();
+        
+        if (t1.includes(t2) || t2.includes(t1)) return true;
+
+        let clean1 = t1.replace(/[0-9\/\-\.,_]+/g, ' ').replace(/\s+/g, ' ').trim();
+        let clean2 = t2.replace(/[0-9\/\-\.,_]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+        if (words1.length === 0 || words2.length === 0) return false;
+        if (words1.length === 1) return words2.includes(words1[0]) && words1[0].length >= 3;
+        if (words2.length === 1) return words1.includes(words2[0]) && words2[0].length >= 3;
+
+        for (let i = 0; i < words1.length - 1; i++) {
+            let bigram = words1[i] + ' ' + words1[i+1];
+            if (clean2.includes(bigram)) return true;
+        }
+        return false;
+    }
+
+    function generateNoteHTML(student, taskName) {
+        if (student.logs && student.logs.phongtrao && student.logs.phongtrao.length > 0) {
+            return student.logs.phongtrao.map(pt => {
+                let isMatch = taskName && isSimilarTask(taskName, pt.text);
+                let bg = isMatch ? 'background: #fef2f2; border: 1px solid var(--danger); padding: 6px; border-radius: 8px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(239,68,68,0.1);' : 'margin-bottom: 4px;';
+                
+                return `<div style="font-size:12px; color: ${isMatch ? 'var(--danger)' : 'var(--text-main)'}; font-weight: ${isMatch ? 'bold' : 'normal'}; text-align: left; line-height: 1.4; ${bg}">
+                            ${isMatch ? '⚠️ Đã làm: ' : '✔️ '} ${pt.text} <br><span style="font-size:11px; color:var(--text-muted); font-weight: normal;">(${pt.date})</span>
+                        </div>`;
+            }).join('');
+        } else {
+            return "<span style='color:var(--text-muted); font-style:italic; font-size:12px;'>Chưa có hoạt động</span>";
+        }
+    }
+
+    function checkTaskWarning() {
+        const taskName = document.getElementById('txtTaskName').value.trim();
+        const rows = document.querySelectorAll('#resultTableBody tr');
+        
+        rows.forEach(row => {
+            const cbx = row.querySelector('.student-cbx');
+            if (!cbx) return; 
+            
+            const orgIdx = cbx.getAttribute('data-original-index');
+            const student = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'))[orgIdx];
+            
+            const noteCell = row.cells[8]; 
+            if(!noteCell) return;
+            
+            noteCell.innerHTML = generateNoteHTML(student, taskName);
+        });
+    }
+
+    function filterStudents() {
+        const mode = document.querySelector('input[name="filterMode"]:checked').value;
+        const keyword = document.getElementById('txtKeyword').value.trim().toLowerCase();
+        const genderFilter = document.getElementById('selGenderFilter').value;
+        const taskName = document.getElementById('txtTaskName').value.trim(); 
+        
+        let qtyInput = document.getElementById('txtQuantity').value;
+        const qty = qtyInput ? parseInt(qtyInput) : 0;
+        
+        const rawData = localStorage.getItem('DuLieu_Lop11_Master');
+        const tbody = document.getElementById('resultTableBody');
+        const fallbackWarning = document.getElementById('fallbackWarning');
+        fallbackWarning.style.display = 'none'; 
+        
+        if (!rawData) {
+            alert("Không tìm thấy dữ liệu lớp. Vui lòng tải danh sách lớp ở Trang Chủ!");
+            return;
+        }
+
+        let students = JSON.parse(rawData);
+
+        const sortFn = (a, b) => {
+            const vpA = (a.logs && a.logs.vipham) ? a.logs.vipham.length : 0;
+            const vpB = (b.logs && b.logs.vipham) ? b.logs.vipham.length : 0;
+            const ptA = (a.logs && a.logs.phongtrao) ? a.logs.phongtrao.length : 0;
+            const ptB = (b.logs && b.logs.phongtrao) ? b.logs.phongtrao.length : 0;
+            
+            if (ptA !== ptB) return ptA - ptB; 
+            return vpB - vpA; 
+        };
+
+        let exactMatches = [];
+        let fallbacks = [];
+
+        students.forEach((s, idx) => {
+            s.originalIndex = idx;
+            s.isFallback = false;
+            
+            const sGender = (s["Giới Tính"] || "").toLowerCase();
+            const matchGender = (genderFilter === 'all') || (sGender.includes(genderFilter)); 
+            
+            if (matchGender) {
+                if (mode === 'nangkhieu') {
+                    const theThao = (s["Thể Thao"] || "").toLowerCase();
+                    const vanNghe = (s["Văn Nghệ - Nghệ Thuật"] || "").toLowerCase();
+                    const khac = (s["Năng Khiếu - Sở Trường Khác"] || "").toLowerCase();
+                    
+                    const matchKeyword = !keyword || theThao.includes(keyword) || vanNghe.includes(keyword) || khac.includes(keyword);
+                    
+                    if (matchKeyword) {
+                        exactMatches.push(s);
+                    } else if (keyword) {
+                        fallbacks.push(s);
+                    }
+                } else {
+                    exactMatches.push(s);
+                }
+            }
+        });
+
+        if (mode === 'nangkhieu' && !keyword && genderFilter === 'all') {
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-state">⚠️ Vui lòng nhập từ khóa năng khiếu hoặc chọn Giới tính.</td></tr>';
+            document.getElementById('actionBar').style.display = 'none';
+            return;
+        }
+
+        exactMatches.sort(sortFn);
+        fallbacks.sort(sortFn);
+
+        currentFilteredList = [];
+
+        if (qty > 0) {
+            if (exactMatches.length >= qty) {
+                currentFilteredList = exactMatches.slice(0, qty);
+            } else {
+                let needed = qty - exactMatches.length;
+                let selectedFallbacks = fallbacks.slice(0, needed).map(s => ({...s, isFallback: true}));
+                currentFilteredList = [...exactMatches, ...selectedFallbacks];
+                
+                if (selectedFallbacks.length > 0) {
+                    fallbackWarning.style.display = 'flex';
+                    fallbackWarning.innerHTML = `<span style="font-size:20px;">💡</span> <div>Lớp chỉ có <b>${exactMatches.length}</b> học sinh đúng sở trường. Hệ thống đã tự động bù đắp thêm <b>${selectedFallbacks.length}</b> học sinh (Ưu tiên những em ít phong trào) để đủ số lượng ${qty} em.</div>`;
+                }
+            }
+        } else {
+            currentFilteredList = exactMatches;
+        }
+
+        if (currentFilteredList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Không tìm thấy dữ liệu học sinh phù hợp với tiêu chí lọc.</td></tr>`;
+            document.getElementById('actionBar').style.display = 'none';
+        } else {
+            tbody.innerHTML = currentFilteredList.map((s, index) => {
+                let talentHTML = "";
+                if (mode === 'nangkhieu') {
+                    let matchedTalents = [];
+                    if (keyword) {
+                        if ((s["Thể Thao"] || "").toLowerCase().includes(keyword)) matchedTalents.push(s["Thể Thao"]);
+                        if ((s["Văn Nghệ - Nghệ Thuật"] || "").toLowerCase().includes(keyword)) matchedTalents.push(s["Văn Nghệ - Nghệ Thuật"]);
+                        if ((s["Năng Khiếu - Sở Trường Khác"] || "").toLowerCase().includes(keyword)) matchedTalents.push(s["Năng Khiếu - Sở Trường Khác"]);
+                    }
+                    
+                    if (s.isFallback) {
+                        talentHTML = "<span style='color:#b45309; font-weight:700; font-size:12px; background:#fde68a; padding:4px 8px; border-radius:10px;'>⚠️ Phân công bù</span>";
+                    } else {
+                        talentHTML = matchedTalents.length > 0 ? matchedTalents.map(t => `<span class="talent-tag">${t}</span>`).join(' ') : "<span style='color:var(--text-muted); font-size:12px;'>Không yêu cầu</span>";
+                    }
+                } else {
+                    talentHTML = "<span style='color:var(--text-muted); font-style:italic; font-size:12px;'>Không yêu cầu</span>";
+                }
+                
+                const vpCount = (s.logs && s.logs.vipham) ? s.logs.vipham.length : 0;
+                const ptCount = (s.logs && s.logs.phongtrao) ? s.logs.phongtrao.length : 0;
+                const vpBadge = vpCount > 0 ? "badge vp-badge" : "badge vp-safe";
+                
+                const noteHTML = generateNoteHTML(s, taskName);
+
+                // Radio chọn người phụ trách
+                const leaderHTML = `<input type="radio" name="leaderRadio" class="leader-radio" value="${s.originalIndex}" title="Chọn làm người phụ trách nhiệm vụ">`;
+
+                return `
+                    <tr style="${s.isFallback ? 'background-color: #fefce8;' : ''}">
+                        <td>
+                            <label class="cbx-container">
+                                <input type="checkbox" class="student-cbx" value="${index}" data-original-index="${s.originalIndex}" onchange="updateCount()" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                        </td>
+                        <td style="font-weight: 800; color: var(--info-dark);">${s["STT"] || s.originalIndex+1}</td>
+                        <td style="text-align: left; font-weight: 800;">${s["Họ và Tên"]}</td>
+                        <td style="font-weight: 700; color: var(--text-muted);">${s["Giới Tính"] || "--"}</td>
+                        <td>${talentHTML}</td>
+                        <td><span class="${vpBadge}">${vpCount}</span></td>
+                        <td><span class="badge pt-badge">${ptCount}</span></td>
+                        <td>${leaderHTML}</td>
+                        <td style="vertical-align: top;">${noteHTML}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('actionBar').style.display = 'flex';
+            updateCount();
+        }
+    }
+
+    function updateCount() {
+        const checkboxes = document.querySelectorAll('.student-cbx:checked');
+        document.getElementById('countDisplay').innerText = checkboxes.length;
+    }
+
+    function syncToRecords() {
+        const checkboxes = document.querySelectorAll('.student-cbx:checked');
+        if (checkboxes.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 học sinh để chốt phân công!");
+            return;
+        }
+
+        const taskName = document.getElementById('txtTaskName').value.trim();
+        if (!taskName) {
+            alert("⚠️ Vui lòng nhập [Tên Nhiệm Vụ Đang Giao] ở bên trên để hệ thống biết bạn đang phân công hoạt động gì nhé!");
+            document.getElementById('txtTaskName').focus();
+            return;
+        }
+
+        if (!confirm(`Bạn có chắc chắn muốn ghi nhận hoạt động "${taskName}" vào hồ sơ của ${checkboxes.length} học sinh đang được chọn?`)) {
+            return;
+        }
+
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        
+        const now = new Date().toLocaleDateString('vi-VN');
+        const taskId = 'TASK_' + Date.now();
+        const leaderOrgIdx = document.querySelector('.leader-radio:checked')?.value;
+
+        let currentTask = {
+            id: taskId,
+            name: taskName,
+            date: now,
+            students: [] 
+        };
+
+        checkboxes.forEach(cb => {
+            const orgIdx = parseInt(cb.getAttribute('data-original-index'));
+            currentTask.students.push({ orgIdx: orgIdx, present: true, originalText: "" });
+
+            if (!masterData[orgIdx].logs) {
+                masterData[orgIdx].logs = { vipham: [], phongtrao: [] };
+            }
+
+            const isLeader = (orgIdx.toString() === leaderOrgIdx);
+            let finalTaskName = taskName;
+            
+            if(isLeader) {
+                finalTaskName += ` <br><small style="color:var(--dark-orange); font-weight:bold;">Vai trò: Người phụ trách</small>`;
+            }
+
+            masterData[orgIdx].logs.phongtrao.push({
+                id: taskId,
+                text: finalTaskName,
+                date: now
+            });
+        });
+
+        assignedTasks.unshift(currentTask); 
+        localStorage.setItem('AssignedTasks_Lop11', JSON.stringify(assignedTasks));
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(masterData));
+        
+        alert(`✅ THÀNH CÔNG! Đã cập nhật hoạt động "${taskName}" cho ${checkboxes.length} học sinh.`);
+        
+        const leaderRadio = document.querySelector('.leader-radio:checked');
+        if(leaderRadio) leaderRadio.checked = false;
+        
+        filterStudents(); 
+    }
+
+    function exportSelected() {
+        const checkboxes = document.querySelectorAll('.student-cbx:checked');
+        if (checkboxes.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 học sinh để xuất file!");
+            return;
+        }
+
+        const taskName = document.getElementById('txtTaskName').value.trim() || "Danh_Sach_Phan_Cong";
+        const leaderOrgIdx = document.querySelector('.leader-radio:checked')?.value;
+        let exportData = [];
+
+        checkboxes.forEach((cb, index) => {
+            const orgIdx = cb.getAttribute('data-original-index');
+            const student = currentFilteredList[cb.value];
+            const ptCount = (student.logs && student.logs.phongtrao) ? student.logs.phongtrao.length : 0;
+            const historyText = student.logs && student.logs.phongtrao ? student.logs.phongtrao.map(pt => pt.text.replace(/<[^>]*>?/gm, '')).join('; ') : "Chưa có";
+            const isLeader = (orgIdx === leaderOrgIdx) ? "Người phụ trách" : "";
+
+            exportData.push({
+                "STT": index + 1,
+                "Họ và Tên": student["Họ và Tên"],
+                "Giới Tính": student["Giới Tính"] || "",
+                "Số Lần HĐ Trước": ptCount,
+                "Nhiệm Vụ Cụ Thể": taskName, 
+                "Phụ Trách": isLeader,
+                "Lịch Sử HĐ Cũ": historyText
+            });
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        ws['!cols'] = [{wch: 6}, {wch: 30}, {wch: 10}, {wch: 15}, {wch: 30}, {wch: 15}, {wch: 40}];
+        
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "PhanCong");
+        
+        const safeName = taskName.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, "_");
+        XLSX.writeFile(wb, `${safeName}.xlsx`);
+    }
+
+    // TÍNH NĂNG IN DANH SÁCH
+    function printSelected() {
+        const checkboxes = document.querySelectorAll('.student-cbx:checked');
+        if (checkboxes.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 học sinh để in danh sách!");
+            return;
+        }
+
+        const taskName = document.getElementById('txtTaskName').value.trim() || "Chưa đặt tên nhiệm vụ";
+        const today = new Date().toLocaleDateString('vi-VN');
+        const leaderOrgIdx = document.querySelector('.leader-radio:checked')?.value;
+
+        let html = `
+            <div class="print-header">
+                <h2>DANH SÁCH PHÂN CÔNG NHIỆM VỤ</h2>
+                <h3>Nhiệm vụ: <b>${taskName}</b></h3>
+            </div>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">STT</th>
+                        <th style="width: 35%; text-align: left; padding-left:15px;">Họ và Tên</th>
+                        <th style="width: 10%;">Giới Tính</th>
+                        <th style="width: 30%;">Ghi chú</th>
+                        <th style="width: 20%;">Ký nhận</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        checkboxes.forEach((cb, index) => {
+            const orgIdx = cb.getAttribute('data-original-index');
+            const student = currentFilteredList[cb.value];
+            const isLeaderText = (orgIdx === leaderOrgIdx) ? '<b>Người phụ trách</b>' : '';
+
+            html += `
+                <tr>
+                    <td><b>${index + 1}</b></td>
+                    <td class="text-left" style="padding-left:15px; font-weight:bold;">${student["Họ và Tên"]}</td>
+                    <td>${student["Giới Tính"] || ""}</td>
+                    <td>${isLeaderText}</td>
+                    <td></td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+            <div class="print-sign">
+                <div class="print-sign-box">
+                    <p><i>Ngày ${today.split('/')[0]} tháng ${today.split('/')[1]} năm ${today.split('/')[2]}</i></p>
+                    <p style="font-weight: bold; margin-top:10px; margin-bottom: 70px;">Giáo viên phân công</p>
+                    <p>.......................................</p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('printContainer').innerHTML = html;
+        window.print();
+    }
+
+    // ==========================================
+    // QUẢN LÝ NHIỆM VỤ ĐÃ GIAO (SỬA DS / SỬA TÊN / XÓA / ĐIỂM DANH)
+    // ==========================================
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function openTaskManager() {
+        renderTaskManager();
+        document.getElementById('taskManagerModal').classList.add('active');
+    }
+
+    function renderTaskManager() {
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let tbody = document.getElementById('taskManagerBody');
+        if (assignedTasks.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state" style="padding: 30px;">Chưa có nhiệm vụ nào được phân công.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = assignedTasks.map((t) => `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 12px 10px;"><b>${t.date}</b></td>
+                <td style="text-align: left; padding: 12px 10px; font-weight: bold; color: var(--text-main); font-size: 15px;">${t.name}</td>
+                <td style="padding: 12px 10px;"><span class="badge pt-badge" style="font-size: 12px;">${t.students.length} HS</span></td>
+                <td style="padding: 12px 10px;">
+                    <div style="display:flex; gap:6px; justify-content:center; flex-wrap: wrap;">
+                        <button class="btn" style="padding: 6px 10px; font-size:12px; height:auto; background: var(--info);" onclick="openAttendance('${t.id}')">Điểm Danh</button>
+                        <button class="btn" style="padding: 6px 10px; font-size:12px; height:auto; background: var(--success);" onclick="openEditList('${t.id}')">Sửa DS</button>
+                        <button class="btn" style="padding: 6px 10px; font-size:12px; height:auto; background: var(--warning);" onclick="editTaskName('${t.id}')">Sửa Tên</button>
+                        <button class="btn" style="padding: 6px 10px; font-size:12px; height:auto; background: var(--danger);" onclick="deleteTask('${t.id}')">Xóa</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function deleteTask(taskId) {
+        if(!confirm("⚠️ CẢNH BÁO: Xóa hoạt động này sẽ đồng thời THU HỒI toàn bộ điểm phong trào cũng như lịch sử vi phạm (nếu có) của tất cả học sinh tham gia. Bạn chắc chắn muốn xóa?")) return;
+        
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        
+        let taskIndex = assignedTasks.findIndex(t => t.id === taskId);
+        if (taskIndex > -1) {
+            let task = assignedTasks[taskIndex];
+            task.students.forEach(s => {
+                let logs = masterData[s.orgIdx].logs;
+                if(logs) {
+                    if(logs.phongtrao) logs.phongtrao = logs.phongtrao.filter(pt => pt.id !== taskId);
+                    if(logs.vipham) logs.vipham = logs.vipham.filter(vp => vp.id !== 'VP_' + taskId);
+                }
+            });
+            assignedTasks.splice(taskIndex, 1);
+            localStorage.setItem('AssignedTasks_Lop11', JSON.stringify(assignedTasks));
+            localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(masterData));
+            renderTaskManager();
+            filterStudents(); 
+            alert("🗑️ Đã xóa hoạt động thành công!");
+        }
+    }
+
+    function editTaskName(taskId) {
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let task = assignedTasks.find(t => t.id === taskId);
+        if(!task) return;
+
+        let newName = prompt("Nhập tên mới cho nhiệm vụ:", task.name);
+        if (!newName || newName.trim() === "" || newName === task.name) return;
+        
+        let oldName = task.name;
+        task.name = newName.trim();
+
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        task.students.forEach(s => {
+            let logs = masterData[s.orgIdx].logs;
+            if(logs) {
+                if(logs.phongtrao) {
+                    let pt = logs.phongtrao.find(p => p.id === taskId);
+                    if (pt) {
+                        pt.text = pt.text.replace(oldName, task.name);
+                    }
+                }
+                if(logs.vipham) {
+                    let vp = logs.vipham.find(v => v.id === 'VP_' + taskId);
+                    if (vp) {
+                        vp.text = vp.text.replace(oldName, task.name);
+                    }
+                }
+            }
+        });
+
+        localStorage.setItem('AssignedTasks_Lop11', JSON.stringify(assignedTasks));
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(masterData));
+        renderTaskManager();
+        filterStudents();
+        alert("✏️ Đã cập nhật tên nhiệm vụ thành công!");
+    }
+
+    // TÍNH NĂNG ĐIỂM DANH LẠI
+    function openAttendance(taskId) {
+        closeModal('taskManagerModal');
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let task = assignedTasks.find(t => t.id === taskId);
+        if(!task) return;
+        
+        document.getElementById('currentAttendanceTaskName').innerText = task.name;
+        document.getElementById('currentAttendanceTaskId').value = taskId;
+        
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        let html = '';
+        task.students.forEach(s => {
+            let student = masterData[s.orgIdx];
+            if(student) {
+                html += `
+                    <label class="student-check-row">
+                        <input type="checkbox" class="attendance-cbx" value="${s.orgIdx}" ${s.present ? 'checked' : ''}>
+                        <span>${student["STT"] || s.orgIdx+1}. ${student["Họ và Tên"]}</span>
+                    </label>
+                `;
+            }
+        });
+        document.getElementById('pastTaskStudents').innerHTML = html;
+        document.getElementById('reviewModal').classList.add('active');
+    }
+
+    function backToTaskManagerFromReview() {
+        closeModal('reviewModal');
+        openTaskManager();
+    }
+
+    function saveAttendance() {
+        const taskId = document.getElementById('currentAttendanceTaskId').value;
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let taskIndex = assignedTasks.findIndex(t => t.id === taskId);
+        if(taskIndex === -1) return;
+
+        let task = assignedTasks[taskIndex];
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        const cbxs = document.querySelectorAll('.attendance-cbx');
+        
+        cbxs.forEach(cb => {
+            let orgIdx = parseInt(cb.value);
+            let isPresent = cb.checked;
+            let studentObj = task.students.find(s => s.orgIdx === orgIdx);
+            
+            if(studentObj.present && !isPresent) {
+                studentObj.present = false;
+                let sLogs = masterData[orgIdx].logs;
+                let originalText = task.name;
+                
+                if(sLogs.phongtrao) {
+                    let ptIndex = sLogs.phongtrao.findIndex(pt => pt.id === taskId);
+                    if(ptIndex > -1) {
+                        originalText = sLogs.phongtrao[ptIndex].text; 
+                        sLogs.phongtrao.splice(ptIndex, 1);
+                    }
+                }
+                studentObj.originalText = originalText;
+
+                if(!sLogs.vipham) sLogs.vipham = [];
+                sLogs.vipham.push({
+                    id: 'VP_' + taskId,
+                    text: `Chưa hoàn thành công việc được giao: ${task.name}`,
+                    date: new Date().toLocaleDateString('vi-VN')
+                });
+            } 
+            else if (!studentObj.present && isPresent) {
+                studentObj.present = true;
+                let sLogs = masterData[orgIdx].logs;
+                
+                if(sLogs.vipham) sLogs.vipham = sLogs.vipham.filter(vp => vp.id !== 'VP_' + taskId);
+                if(!sLogs.phongtrao) sLogs.phongtrao = [];
+                sLogs.phongtrao.push({
+                    id: taskId,
+                    text: studentObj.originalText || task.name,
+                    date: task.date
+                });
+            }
+        });
+        
+        localStorage.setItem('AssignedTasks_Lop11', JSON.stringify(assignedTasks));
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(masterData));
+        
+        alert('Đã cập nhật điểm danh và ghi nhận lỗi vi phạm!');
+        backToTaskManagerFromReview();
+        filterStudents(); 
+    }
+
+    // TÍNH NĂNG MỚI: SỬA DANH SÁCH PHÂN CÔNG (THÊM / BỚT NGƯỜI)
+    function openEditList(taskId) {
+        closeModal('taskManagerModal');
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let task = assignedTasks.find(t => t.id === taskId);
+        if(!task) return;
+        
+        document.getElementById('editListName').innerText = task.name;
+        document.getElementById('editListTaskId').value = taskId;
+        
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        let currentStudentIdxs = task.students.map(s => s.orgIdx);
+        
+        let html = '';
+        masterData.forEach((student, idx) => {
+            let isChecked = currentStudentIdxs.includes(idx) ? 'checked' : '';
+            html += `
+                <label class="student-check-row" style="border: 1px solid #e2e8f0; margin-bottom: 0; background: ${isChecked ? '#f0fdf4' : 'white'};">
+                    <input type="checkbox" class="edit-list-cbx" value="${idx}" ${isChecked}>
+                    <span>${student["STT"] || idx+1}. ${student["Họ và Tên"]}</span>
+                </label>
+            `;
+        });
+        document.getElementById('allStudentsEditList').innerHTML = html;
+        document.getElementById('editListModal').classList.add('active');
+    }
+
+    function backToTaskManagerFromEdit() {
+        closeModal('editListModal');
+        openTaskManager();
+    }
+
+    function saveEditList() {
+        const taskId = document.getElementById('editListTaskId').value;
+        let assignedTasks = JSON.parse(localStorage.getItem('AssignedTasks_Lop11')) || [];
+        let taskIndex = assignedTasks.findIndex(t => t.id === taskId);
+        if(taskIndex === -1) return;
+
+        let task = assignedTasks[taskIndex];
+        let masterData = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+        
+        const cbxs = document.querySelectorAll('.edit-list-cbx');
+        let newStudentIdxs = Array.from(cbxs).filter(cb => cb.checked).map(cb => parseInt(cb.value));
+        let oldStudentIdxs = task.students.map(s => s.orgIdx);
+        
+        let addedIdxs = newStudentIdxs.filter(idx => !oldStudentIdxs.includes(idx));
+        let removedIdxs = oldStudentIdxs.filter(idx => !newStudentIdxs.includes(idx));
+        
+        // 1. Rút học sinh khỏi danh sách
+        removedIdxs.forEach(orgIdx => {
+            task.students = task.students.filter(s => s.orgIdx !== orgIdx);
+            if(masterData[orgIdx].logs) {
+                if(masterData[orgIdx].logs.phongtrao) masterData[orgIdx].logs.phongtrao = masterData[orgIdx].logs.phongtrao.filter(pt => pt.id !== taskId);
+                if(masterData[orgIdx].logs.vipham) masterData[orgIdx].logs.vipham = masterData[orgIdx].logs.vipham.filter(vp => vp.id !== 'VP_' + taskId);
+            }
+        });
+        
+        // 2. Thêm học sinh mới vào danh sách
+        addedIdxs.forEach(orgIdx => {
+            task.students.push({ orgIdx: orgIdx, present: true, originalText: task.name });
+            if(!masterData[orgIdx].logs) masterData[orgIdx].logs = { vipham: [], phongtrao: [] };
+            if(!masterData[orgIdx].logs.phongtrao) masterData[orgIdx].logs.phongtrao = [];
+            masterData[orgIdx].logs.phongtrao.push({
+                id: taskId,
+                text: task.name,
+                date: task.date
+            });
+        });
+        
+        localStorage.setItem('AssignedTasks_Lop11', JSON.stringify(assignedTasks));
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(masterData));
+        
+        alert('✅ Đã điều chỉnh danh sách phân công và cập nhật điểm phong trào thành công!');
+        backToTaskManagerFromEdit();
+        filterStudents(); 
+    }
+</script>
+</body>
+</html>

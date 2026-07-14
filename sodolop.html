@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sơ Đồ Lớp & Trực Nhật - GVCN Cam Bích Hằng</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary-orange: #f97316; --dark-orange: #ea580c; --light-orange: #fff7ed;
+            --info: #0ea5e9; --success: #10b981; --danger: #ef4444; --purple: #8b5cf6;
+            --bg-body: #f8fafc; --text-main: #1e293b; --border-color: #e2e8f0;
+        }
+
+        body { font-family: 'Nunito', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 30px 30px; margin: 0; color: var(--text-main); line-height: 1.5;}
+        
+        .header { background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange)); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 10px 30px rgba(234, 88, 12, 0.25); border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; margin-bottom: 40px; position: relative;}
+        .header h1 { margin: 0 0 5px 0; font-weight: 900; font-size: 1.9em; text-transform: uppercase; letter-spacing: 1px;}
+        .btn-back { position: absolute; left: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 800; transition: all 0.3s; display: flex; align-items: center; gap: 8px;}
+        .btn-back:hover { background: white; color: var(--dark-orange); box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+
+        .container { max-width: 1450px; margin: 0 auto 50px auto; background: rgba(255, 255, 255, 0.98); padding: 35px 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.06); border: 1px solid var(--border-color); }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 15px; margin-bottom: 30px; border-bottom: 3px solid var(--border-color); padding-bottom: 0;}
+        .tab-btn { padding: 16px 30px; border: none; background: transparent; font-size: 15.5px; font-family: 'Nunito', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; cursor: pointer; border-radius: 14px 14px 0 0; transition: 0.3s;}
+        .tab-btn:hover { background: #f1f5f9; color: var(--primary-orange); }
+        .tab-btn.active { background: white; color: var(--dark-orange); border: 3px solid var(--border-color); border-bottom: 3px solid white; margin-bottom: -3px; box-shadow: 0 -4px 10px rgba(0,0,0,0.02);}
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from {opacity: 0; transform: translateY(15px);} to {opacity: 1; transform: translateY(0);} }
+
+        /* Tiện ích Buttons */
+        .action-bar { display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center; flex-wrap: wrap; gap: 15px;}
+        .btn { padding: 12px 22px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 14px; color: white; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; font-family: inherit; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.15);}
+        .btn-random { background: linear-gradient(135deg, var(--info), #0284c7); }
+        .btn-save { background: linear-gradient(135deg, var(--success), #059669); }
+        .btn-export { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-newweek { background: linear-gradient(135deg, var(--purple), #6d28d9); }
+        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); }
+
+        /* THÔNG TIN CẤU HÌNH LỚP */
+        .class-info-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; background: #f8fafc; padding: 25px; border-radius: 16px; margin-bottom: 25px; border: 1px solid var(--border-color); }
+        .class-info-panel div { display: flex; flex-direction: column; gap: 8px; }
+        .class-info-panel label { font-size: 13px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;}
+        .class-info-panel input { padding: 12px 15px; border-radius: 10px; border: 1px solid #cbd5e1; font-weight: 700; font-family: inherit; font-size: 15px; outline: none; transition: 0.3s; color: var(--text-main);}
+        .class-info-panel input:focus { border-color: var(--primary-orange); box-shadow: 0 0 0 4px var(--light-orange); background: white;}
+        .class-info-panel input[readonly] { background: #f1f5f9; color: var(--info); border-color: transparent; }
+
+        /* KIỂU DÁNG SƠ ĐỒ LỚP HỌC */
+        .classroom-layout { background: white; border: 2px solid var(--border-color); border-radius: 20px; padding: 35px; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.01);}
+        .group-titles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; text-align: center; margin-bottom: 25px;}
+        .group-titles div:nth-child(2) { margin-right: 50px; }
+        .group-select { padding: 10px 15px; border-radius: 10px; border: 2px dashed var(--info); font-weight: 900; color: var(--info); background: #f0f9ff; cursor: pointer; outline: none; text-align: center; font-size: 16px; text-transform: uppercase; width: 100%; transition: 0.3s;}
+        .group-select:focus { border-style: solid; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);}
+
+        .desks-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; row-gap: 30px; }
+        .desks-grid .desk-item:nth-child(4n+2) { margin-right: 50px; }
+
+        .desk-item { background: #f8fafc; border: 2px solid #bae6fd; border-radius: 14px; padding: 22px 10px 15px 10px; text-align: center; position: relative; transition: 0.3s; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);}
+        .desk-item:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(14, 165, 233, 0.1); border-color: var(--info);}
+        .desk-label { font-size: 13px; font-weight: 900; color: white; background: var(--info); position: absolute; top: -14px; left: 50%; transform: translateX(-50%); padding: 4px 22px; border-radius: 20px; white-space: nowrap; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.3);}
+        
+        .seat-wrapper { display: flex; gap: 10px; width: 100%; }
+        .seat-box { flex: 1; }
+        .desk-item select.seat-select { width: 100%; padding: 10px 4px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 14px; font-weight: 700; color: var(--text-main); outline: none; background: white; transition: 0.3s;}
+        .desk-item select.seat-select.seat-nam { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .desk-item select.seat-select.seat-nu { background-color: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+        .desk-item select.seat-select:focus { border-color: var(--primary-orange); box-shadow: 0 0 0 3px var(--light-orange);}
+        .duplicate-warn { background-color: #fef2f2 !important; border-color: var(--danger) !important; color: var(--danger) !important; box-shadow: 0 0 8px rgba(239,68,68,0.3) !important;}
+
+        .bottom-layout { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 25px; margin-top: 50px; border-top: 2px dashed var(--border-color); padding-top: 35px;}
+        .layout-box { border-radius: 14px; text-align: center; font-weight: 900; display: flex; align-items: center; justify-content: center; height: 55px;}
+        .box-board { background: #334155; color: white; border: 4px solid #1e293b; font-size: 18px; text-transform: uppercase; box-shadow: 0 10px 20px rgba(0,0,0,0.1);}
+        .box-select { background: #fff7ed; border: 2px dashed var(--primary-orange); transition: 0.3s; padding: 5px;}
+        .box-select select { width: 100%; height: 100%; border: none; background: transparent; font-weight: 900; color: var(--dark-orange); text-align: center; font-size: 16px; outline: none; cursor: pointer; text-align-last: center;}
+
+        /* BẢNG CHUNG */
+        .schedule-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .schedule-table th { background: #f1f5f9; color: var(--text-main); padding: 16px 15px; font-size: 14px; text-transform: uppercase; font-weight: 900; border-bottom: 2px solid var(--border-color);}
+        .schedule-table td { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: center; vertical-align: middle; transition: 0.2s;}
+        .schedule-table tr:last-child td { border-bottom: none; }
+        .schedule-table tr:hover td { background: #f8fafc; }
+        
+        /* TRỰC NHẬT TẠI LỚP */
+        .duty-sel-group { padding: 10px; border-radius: 10px; border: 2px solid var(--info); font-weight: 900; color: var(--info); background: #f0f9ff; outline: none; width: 100%; cursor: pointer; font-size: 14px;}
+        .duty-sel-group.phat { border-color: var(--danger); color: var(--danger); background: #fef2f2; }
+        .duty-sel-group.khac { border-color: var(--purple); color: var(--purple); background: #faf5ff; }
+        .duty-sel-desk { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; font-weight: 800; width: 100%; outline: none; background: white; font-size: 14px;}
+        
+        .student-box { background: white; border: 1px solid #cbd5e1; padding: 10px; border-radius: 10px; font-weight: 800; color: var(--text-main); min-height: 22px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 8px;}
+        .student-box.phat-select, .student-box.khac-select { padding: 0; border: none; background: transparent;}
+        .student-box.phat-select select { width: 100%; padding: 10px; border-radius: 10px; border: 2px solid var(--danger); font-weight: bold; color: var(--danger); background: #fef2f2; outline: none;}
+        .student-box.khac-select select { width: 100%; padding: 10px; border-radius: 10px; border: 2px solid var(--purple); font-weight: bold; color: var(--purple); background: #faf5ff; outline: none;}
+
+        .task-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 8px;}
+        .task-tags label { cursor: pointer; font-size: 12px; font-weight: 800; user-select: none; }
+        .task-tags input[type="checkbox"] { display: none; }
+        .task-tags span { display: inline-block; padding: 6px 12px; border-radius: 20px; border: 1px solid #cbd5e1; background: #f8fafc; color: #64748b; transition: all 0.2s; white-space: nowrap;}
+        .task-tags input[type="checkbox"]:checked + span { background: var(--info); color: white; border-color: var(--info); box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2);}
+        .task-other-input { width: 90%; padding: 8px 12px; border-radius: 10px; border: 1px dashed #cbd5e1; font-size: 13px; outline: none; text-align: center; background: #f8fafc;}
+        .task-other-input:focus { border-style: solid; border-color: var(--info); background: white;}
+
+        .eval-input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; outline: none; text-align: center; box-sizing: border-box;}
+        .eval-input.good { border-color: var(--success); color: var(--success); font-weight: 800; background: #ecfdf5;}
+        .eval-input.bad { border-color: var(--danger); color: var(--danger); font-weight: 800; background: #fef2f2;}
+
+        /* Khối Cảnh báo Trực Bù */
+        .warning-box { background: #fef2f2; border: 2px dashed var(--danger); padding: 20px; border-radius: 16px; margin-bottom: 25px; display: none;}
+        .warning-box h3 { margin: 0 0 12px 0; color: var(--danger); font-size: 16px; display: flex; align-items: center; gap: 8px;}
+        .warning-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+        .w-tag { background: white; border: 1px solid var(--danger); color: var(--danger); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 800;}
+
+        /* THỐNG KÊ CARDS */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;}
+        .stat-card { background: white; padding: 25px; border-radius: 16px; border-left: 6px solid var(--border-color); box-shadow: 0 10px 20px rgba(0,0,0,0.03); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);}
+        .stat-card.good { border-left-color: var(--success); }
+        .stat-card.bad { border-left-color: var(--danger); }
+        .stat-card h3 { margin: 0 0 20px 0; font-size: 16px; border-bottom: 2px dashed var(--border-color); padding-bottom: 12px; text-transform: uppercase; font-weight: 900;}
+        .s-list-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 15px; font-weight: 800; color: var(--text-main);}
+        .s-list-item .score { padding: 4px 12px; border-radius: 12px; font-size: 13px;}
+        .good .score { background: #ecfdf5; color: #047857;}
+        .bad .score { background: #fef2f2; color: #b91c1c;}
+
+        /* KHUNG CHỨA BẢNG IN TRỰC NHẬT ẨN */
+        #printDutyContainer { display: none; }
+        .print-only-header { display: none; }
+
+        /* ==========================================
+           CSS CHUẨN IN ẤN
+           ========================================== */
+        @media print {
+            body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;}
+            
+            /* TRƯỜNG HỢP 1: IN LỊCH TRỰC NHẬT */
+            body.print-duty-mode * { visibility: hidden; }
+            body.print-duty-mode #printDutyContainer,
+            body.print-duty-mode #printDutyContainer * { visibility: visible; }
+            body.print-duty-mode #printDutyContainer { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
+            
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-family: 'Times New Roman', serif; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 12px 10px; text-align: center; font-size: 14pt;}
+            .print-table th { font-weight: bold; background: #e2e8f0 !important; -webkit-print-color-adjust: exact; text-transform: uppercase;}
+            .print-header { text-align: center; margin-bottom: 30px; font-family: 'Times New Roman', serif;}
+            .print-header h2 { font-size: 20pt; text-transform: uppercase; margin: 0; font-weight: bold;}
+
+            /* TRƯỜNG HỢP 2: IN SƠ ĐỒ LỚP */
+            body:not(.print-duty-mode) * { visibility: hidden; }
+            body:not(.print-duty-mode) #tab-sodo, 
+            body:not(.print-duty-mode) #tab-sodo * { visibility: visible; }
+            body:not(.print-duty-mode) #tab-sodo { position: absolute; left: 0; top: 0; width: 100%; }
+            
+            body:not(.print-duty-mode) .header, 
+            body:not(.print-duty-mode) .tabs, 
+            body:not(.print-duty-mode) .class-info-panel, 
+            body:not(.print-duty-mode) .action-bar { display: none !important; }
+            body:not(.print-duty-mode) .container { max-width: 100% !important; padding: 0 !important; box-shadow: none !important; border: none !important; margin: 0 !important;}
+            body:not(.print-duty-mode) .classroom-layout { border: 2px solid #000 !important; padding: 20px !important; box-shadow: none !important; border-radius: 0 !important; background: white !important;}
+            
+            body:not(.print-duty-mode) .print-only-header { display: block !important; text-align: center; margin-bottom: 20px; font-family: 'Times New Roman', serif; }
+            body:not(.print-duty-mode) .print-only-header h2 { font-size: 26px; font-weight: bold; margin: 0 0 15px 0; color: #000; }
+            body:not(.print-duty-mode) .print-info-row { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 8px; padding: 0 50px; color: #000; }
+            
+            body:not(.print-duty-mode) .desk-item { background: #fff !important; border: 2px solid #000 !important; box-shadow: none !important; border-radius: 0 !important;}
+            body:not(.print-duty-mode) .desk-label { background: #000 !important; color: #fff !important; border: 1px solid #000 !important; border-radius: 0 !important;}
+            body:not(.print-duty-mode) .desk-item select.seat-select { border: 1px solid #000 !important; background: #fff !important; color: #000 !important; border-radius: 0 !important; font-size: 13px !important; padding: 5px !important;}
+            body:not(.print-duty-mode) .desk-item select.seat-select.seat-nam, 
+            body:not(.print-duty-mode) .desk-item select.seat-select.seat-nu { background-color: #fff !important; color: #000 !important; border-color: #000 !important; }
+            select { appearance: none; -webkit-appearance: none; }
+            
+            body:not(.print-duty-mode) .group-select { border: none !important; background: transparent !important; color: #000 !important; font-size: 18px !important; }
+            body:not(.print-duty-mode) .box-board { background: #eee !important; color: #000 !important; border: 2px solid #000 !important; box-shadow: none !important; border-radius: 0 !important;}
+            body:not(.print-duty-mode) .box-select { background: transparent !important; border: 2px dashed #000 !important; border-radius: 0 !important;}
+            body:not(.print-duty-mode) .box-select select { color: #000 !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="btn-back">⬅ Quay Lại Trang Chủ</a>
+    <h1>SƠ ĐỒ LỚP & THEO DÕI TRỰC NHẬT</h1>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-sodo', this)">🗺️ Sơ Đồ Chỗ Ngồi</button>
+        <button class="tab-btn" onclick="switchTab('tab-trucnhat', this)">🧹 Phân Công Trực Nhật</button>
+        <button class="tab-btn" onclick="switchTab('tab-thongke', this)">📊 Thống Kê Tổng Hợp</button>
+    </div>
+
+    <!-- TAB 1: SƠ ĐỒ CHỖ NGỒI -->
+    <div id="tab-sodo" class="tab-content active">
+
+        <!-- THÔNG TIN LỚP HỌC -->
+        <div class="class-info-panel">
+            <div>
+                <label>Lớp</label>
+                <input type="text" id="info-lop" placeholder="VD: 11A7" onkeyup="saveClassInfo()">
+            </div>
+            <div>
+                <label>Giáo viên chủ nhiệm</label>
+                <input type="text" id="info-gvcn" placeholder="Họ và tên GVCN" onkeyup="saveClassInfo()">
+            </div>
+            <div>
+                <label>Phòng học</label>
+                <input type="text" id="info-phong" placeholder="VD: P.302" onkeyup="saveClassInfo()">
+            </div>
+            <div>
+                <label>Sỉ số tự động</label>
+                <input type="text" id="info-siso" readonly title="Tự động tính từ danh sách Excel">
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <div>
+                <button class="btn btn-random" onclick="autoArrangeSeats()">🎲 Xếp Chỗ Ngẫu Nhiên</button>
+                <button class="btn btn-save" onclick="saveSeating()">💾 Lưu Sơ Đồ</button>
+            </div>
+            <button class="btn btn-export" onclick="window.print()">🖨️ In Sơ Đồ Lớp</button>
+        </div>
+
+        <!-- TIÊU ĐỀ ẨN (CHỈ HIỆN KHI IN SƠ ĐỒ) -->
+        <div class="print-only-header">
+            <h2>SƠ ĐỒ CHỖ NGỒI LỚP <span id="pr-class"></span></h2>
+            <div class="print-info-row">
+                <span>GVCN: <b id="pr-teacher"></b></span>
+                <span>Phòng học: <b id="pr-room"></b></span>
+            </div>
+            <div class="print-info-row">
+                <span>Sỉ số: <b id="pr-siso"></b></span>
+                <span>Nam: <b id="pr-male"></b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Nữ: <b id="pr-female"></b></span>
+            </div>
+            <hr style="border-top: 2px dashed #000; margin: 15px 0 25px 0;">
+        </div>
+
+        <div class="classroom-layout">
+            <div class="group-titles">
+                <div><select id="group_col_1" class="group-select"><option value="Tổ 1">TỔ 1</option><option value="Tổ 2">TỔ 2</option><option value="Tổ 3">TỔ 3</option><option value="Tổ 4">TỔ 4</option></select><div style="color:#94a3b8; font-size:12px; margin-top:5px;">(Dãy 1)</div></div>
+                <div><select id="group_col_2" class="group-select"><option value="Tổ 2" selected>TỔ 2</option><option value="Tổ 1">TỔ 1</option><option value="Tổ 3">TỔ 3</option><option value="Tổ 4">TỔ 4</option></select><div style="color:#94a3b8; font-size:12px; margin-top:5px;">(Dãy 2)</div></div>
+                <div><select id="group_col_3" class="group-select"><option value="Tổ 3" selected>TỔ 3</option><option value="Tổ 1">TỔ 1</option><option value="Tổ 2">TỔ 2</option><option value="Tổ 4">TỔ 4</option></select><div style="color:#94a3b8; font-size:12px; margin-top:5px;">(Dãy 3)</div></div>
+                <div><select id="group_col_4" class="group-select"><option value="Tổ 4" selected>TỔ 4</option><option value="Tổ 1">TỔ 1</option><option value="Tổ 2">TỔ 2</option><option value="Tổ 3">TỔ 3</option></select><div style="color:#94a3b8; font-size:12px; margin-top:5px;">(Dãy 4)</div></div>
+            </div>
+
+            <div class="desks-grid" id="deskGrid"></div>
+
+            <div class="bottom-layout">
+                <div class="layout-box box-select"><select id="leftBox" onchange="syncLayoutBoxes('left')"><option value="door">🚪 CỬA RA VÀO</option><option value="teacher">👨‍🏫 BÀN GIÁO VIÊN</option></select></div>
+                <div class="layout-box box-board">BẢNG ĐEN / MÀN HÌNH TƯƠNG TÁC</div>
+                <div class="layout-box box-select"><select id="rightBox" onchange="syncLayoutBoxes('right')"><option value="teacher">👨‍🏫 BÀN GIÁO VIÊN</option><option value="door">🚪 CỬA RA VÀO</option></select></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: TRỰC NHẬT -->
+    <div id="tab-trucnhat" class="tab-content">
+        
+        <div id="dutyWarningBox" class="warning-box">
+            <h3>🚨 Chú ý: Học sinh cần phân công TRỰC BÙ (Nhiều lần chưa hoàn thành)</h3>
+            <div class="warning-tags" id="dutyWarningTags"></div>
+        </div>
+
+        <div class="action-bar">
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <div style="display:flex; align-items:center; background:#fff; border:1px solid #cbd5e1; padding:8px 15px; border-radius:12px;">
+                    <label style="font-size:13px; font-weight:800; color:#64748b; margin-right:10px; text-transform: uppercase;">Tuần Trực:</label>
+                    <input type="date" id="weekPicker" style="border:none; outline:none; background:transparent; font-weight:900; font-size: 14px; color:var(--dark-orange);" onchange="updateWeekDates()">
+                </div>
+                <button class="btn btn-save" onclick="saveDuty()">💾 Lưu & Chốt Lịch</button>
+                <button class="btn btn-export" onclick="printDuty()">🖨️ In Lịch Trực Theo Tuần</button>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-danger" onclick="resetDutyList()">🔄 Phân Công Lại Từ Đầu</button>
+                <button class="btn btn-newweek" onclick="resetNewWeek()">🚀 Phân Công Tuần Mới</button>
+            </div>
+        </div>
+
+        <div>
+            <h3 style="margin-top:0; color: var(--dark-orange);">📅 Lịch Trực Tại Lớp</h3>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Thứ / Ngày</th>
+                        <th style="width: 120px;">Trực Tổ</th>
+                        <th style="width: 80px;">Bàn</th>
+                        <th style="width: 200px;">Học Sinh 1 & Đánh Giá</th>
+                        <th style="width: 200px;">Học Sinh 2 & Đánh Giá</th>
+                        <th style="width: 200px;">Nội Dung Nhiệm Vụ</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 3: THỐNG KÊ -->
+    <div id="tab-thongke" class="tab-content">
+        <div class="action-bar">
+            <div>
+                <button class="btn btn-danger" onclick="clearStatsHistory()">🗑️ Xóa Lịch Sử Thống Kê</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card good">
+                <h3 style="color: var(--success);">⭐ NGÔI SAO CHĂM CHỈ (Top Tốt)</h3>
+                <div id="topGoodList"></div>
+            </div>
+            <div class="stat-card bad">
+                <h3 style="color: var(--danger);">⚠️ CẦN RÚT KINH NGHIỆM (Hay vi phạm)</h3>
+                <div id="topBadList"></div>
+            </div>
+        </div>
+
+        <h3 style="margin-top:0; color: var(--dark-orange);">📊 Bảng Thống Kê Chi Tiết Toàn Lớp</h3>
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th style="text-align:left; padding-left:20px;">Họ và Tên</th>
+                    <th style="width: 120px;">Tổng Lần Trực</th>
+                    <th style="width: 120px; color:#059669;">Đánh Giá TỐT</th>
+                    <th style="width: 120px; color:#dc2626;">Vi Phạm Lỗi</th>
+                    <th style="text-align: left;">Chi Tiết Lỗi Ghi Nhận</th>
+                </tr>
+            </thead>
+            <tbody id="statsTableBody">
+                <tr><td colspan="6" style="color:#94a3b8; font-style:italic; padding: 40px;">Chưa có dữ liệu thống kê. Vui lòng "Lưu & Chốt Lịch Trực" ở Tab Trực Nhật.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- CONTAINER ĐỂ IN DANH SÁCH TRỰC NHẬT MÀ KHÔNG BỊ DÍNH GIAO DIỆN -->
+<div id="printDutyContainer"></div>
+
+<script>
+    let studentsData = [];
+    let deskMap = { "Tổ 1": {}, "Tổ 2": {}, "Tổ 3": {}, "Tổ 4": {} };
+    let maleCount = 0;
+    let femaleCount = 0;
+
+    window.onload = function() {
+        const rawData = localStorage.getItem('DuLieu_Lop11_Master');
+        if (rawData) {
+            studentsData = JSON.parse(rawData);
+        }
+        
+        // CƠ CHẾ BẢO VỆ CHỐNG KẸT DỮ LIỆU CŨ KHI ĐÃ XÓA TRANG CHỦ
+        if (studentsData.length === 0) {
+            document.getElementById('deskGrid').innerHTML = "<div style='grid-column: span 4; text-align:center; padding: 50px; color:#94a3b8; font-size:16px;'>Chưa có dữ liệu học sinh. Vui lòng nạp danh sách ở trang chủ.</div>";
+            document.getElementById('scheduleBody').innerHTML = "<tr><td colspan='6' class='text-center' style='color:var(--danger); font-weight:bold; padding:40px;'>Không có dữ liệu học sinh để chia trực nhật</td></tr>";
+            document.getElementById('statsTableBody').innerHTML = "<tr><td colspan='6' class='text-center' style='color:var(--danger); padding:40px;'>Chưa có dữ liệu.</td></tr>";
+            return;
+        }
+
+        // Validate Sơ đồ & Trực nhật cũ xem có khớp với sĩ số lớp mới không
+        const savedSeating = localStorage.getItem('Seating_Lop11');
+        if (savedSeating) {
+            const seating = JSON.parse(savedSeating);
+            if (!seating.every(s => s === "" || parseInt(s) < studentsData.length)) {
+                localStorage.removeItem('Seating_Lop11'); 
+            }
+        }
+
+        const savedDuty = localStorage.getItem('DutySchedule_Lop11');
+        if (savedDuty) {
+            const dutyData = JSON.parse(savedDuty);
+            let isValid = dutyData.every(d => {
+                if (d.hs1 && parseInt(d.hs1) >= studentsData.length) return false;
+                if (d.hs2 && parseInt(d.hs2) >= studentsData.length) return false;
+                return true;
+            });
+            if (!isValid) {
+                localStorage.removeItem('DutySchedule_Lop11');
+                localStorage.removeItem('DutyHistory_Lop11');
+            }
+        }
+
+        // Tính Nam/Nữ
+        studentsData.forEach(s => {
+            let gt = (s["Giới Tính"] || s["Giới tính"] || "").toLowerCase();
+            if (gt.includes('nam')) maleCount++; else femaleCount++;
+        });
+
+        initSeatingChart();
+        loadSeating();
+        loadClassInfo(); // Tải thông tin lớp học tự động
+        
+        extractDeskMap();
+        initDailyDutyTable();
+        loadDuty();
+        checkDutyWarnings();
+    }
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+
+        if(tabId === 'tab-trucnhat') { extractDeskMap(); refreshAllDutyRows(); checkDutyWarnings(); }
+        if(tabId === 'tab-thongke') { renderStatistics(); }
+    }
+
+    // ==========================================
+    // MODULE: THÔNG TIN LỚP & IN ẤN SƠ ĐỒ
+    // ==========================================
+    function loadClassInfo() {
+        let appConfig = JSON.parse(localStorage.getItem('AppConfig_Master')) || { className: "", teacherName: "" };
+        let sodoConfig = JSON.parse(localStorage.getItem('SoDo_Config')) || { lop: appConfig.className, gvcn: appConfig.teacherName, phong: "" };
+        
+        document.getElementById('info-lop').value = sodoConfig.lop;
+        document.getElementById('info-gvcn').value = sodoConfig.gvcn;
+        document.getElementById('info-phong').value = sodoConfig.phong;
+        
+        document.getElementById('info-siso').value = `${studentsData.length} HS (Nam: ${maleCount} - Nữ: ${femaleCount})`;
+        updatePrintHeaders();
+    }
+
+    function saveClassInfo() {
+        let config = {
+            lop: document.getElementById('info-lop').value,
+            gvcn: document.getElementById('info-gvcn').value,
+            phong: document.getElementById('info-phong').value
+        };
+        localStorage.setItem('SoDo_Config', JSON.stringify(config));
+        updatePrintHeaders();
+    }
+
+    function updatePrintHeaders() {
+        let lop = document.getElementById('info-lop').value || ".......";
+        let gvcn = document.getElementById('info-gvcn').value || ".......................";
+        let phong = document.getElementById('info-phong').value || ".......";
+
+        document.getElementById('pr-class').innerText = lop;
+        document.getElementById('pr-teacher').innerText = gvcn;
+        document.getElementById('pr-room').innerText = phong;
+        document.getElementById('pr-siso').innerText = studentsData.length;
+        document.getElementById('pr-male').innerText = maleCount;
+        document.getElementById('pr-female').innerText = femaleCount;
+    }
+
+    // ==========================================
+    // MODULE 1: SƠ ĐỒ LỚP HỌC
+    // ==========================================
+    function getStudentOptions() {
+        let opts = `<option value="">-- Trống --</option>`;
+        studentsData.forEach((s, i) => {
+            let gt = (s["Giới Tính"] || "").toLowerCase();
+            let icon = (gt === "nam") ? "👦" : (gt === "nữ" || gt === "nu" ? "👧" : "👤");
+            opts += `<option value="${i}">${icon} ${s["STT"] || i+1}. ${s["Họ và Tên"].split(' ').slice(-2).join(' ')}</option>`; 
+        });
+        return opts;
+    }
+
+    function getAllStudentsOptions() {
+        let opts = `<option value="">-- Chọn Học Sinh --</option>`;
+        studentsData.forEach((s, i) => {
+            opts += `<option value="${i}">${s["STT"] || i+1}. ${s["Họ và Tên"]}</option>`; 
+        });
+        return opts;
+    }
+
+    function initSeatingChart() {
+        const grid = document.getElementById('deskGrid');
+        const rows = 6; const cols = 4; const opts = getStudentOptions();
+        let html = '';
+        for(let r = rows; r >= 1; r--) {
+            for(let c = 1; c <= cols; c++) {
+                let deskAbsId = ((c-1) * 6) + (rows - r); 
+                html += `
+                    <div class="desk-item">
+                        <span class="desk-label">Bàn ${r}</span>
+                        <div class="seat-wrapper">
+                            <div class="seat-box"><select id="seat_${deskAbsId}_1" class="seat-select" onchange="handleSeatChange()">${opts}</select></div>
+                            <div class="seat-box"><select id="seat_${deskAbsId}_2" class="seat-select" onchange="handleSeatChange()">${opts}</select></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        grid.innerHTML = html;
+    }
+
+    function handleSeatChange() {
+        const selects = document.querySelectorAll('.seat-select');
+        const values = []; const duplicates = new Set();
+        selects.forEach(sel => {
+            if (sel.value !== "") {
+                if (values.includes(sel.value)) duplicates.add(sel.value);
+                else values.push(sel.value);
+            }
+            sel.classList.remove('seat-nam', 'seat-nu');
+            if (sel.value !== "") {
+                let gt = (studentsData[sel.value]["Giới Tính"] || "").toLowerCase();
+                if (gt === 'nam') sel.classList.add('seat-nam');
+                else if (gt === 'nữ' || gt === 'nu') sel.classList.add('seat-nu');
+            }
+        });
+        selects.forEach(sel => {
+            if (sel.value !== "" && duplicates.has(sel.value)) sel.classList.add('duplicate-warn');
+            else sel.classList.remove('duplicate-warn');
+        });
+    }
+
+    function syncLayoutBoxes(source) {
+        const left = document.getElementById('leftBox');
+        const right = document.getElementById('rightBox');
+        if (source === 'left') right.value = left.value === 'door' ? 'teacher' : 'door';
+        else left.value = right.value === 'door' ? 'teacher' : 'door';
+    }
+
+    function autoArrangeSeats() {
+        if(!confirm("Xáo trộn ngẫu nhiên và ƯU TIÊN ghép 2 học sinh cùng giới tính ngồi 1 bàn?")) return;
+        let boys = []; let girls = []; let others = [];
+        studentsData.forEach((s, idx) => {
+            let gt = (s["Giới Tính"] || "").toLowerCase();
+            if(gt === 'nam') boys.push(idx); else if(gt === 'nữ' || gt === 'nu') girls.push(idx); else others.push(idx);
+        });
+
+        const shuffle = (arr) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } };
+        shuffle(boys); shuffle(girls); shuffle(others);
+
+        let pairs = [];
+        while(boys.length >= 2) pairs.push([boys.pop(), boys.pop()]);
+        while(girls.length >= 2) pairs.push([girls.pop(), girls.pop()]);
+        
+        let leftovers = [...boys, ...girls, ...others];
+        shuffle(leftovers);
+        while(leftovers.length >= 2) pairs.push([leftovers.pop(), leftovers.pop()]);
+        if(leftovers.length === 1) pairs.push([leftovers.pop(), ""]); 
+
+        shuffle(pairs);
+        while(pairs.length < 24) pairs.unshift(["", ""]); 
+
+        let arrangedIndices = [];
+        pairs.forEach(p => { arrangedIndices.push(p[0]); arrangedIndices.push(p[1]); });
+
+        const selects = [];
+        for(let c=0; c<4; c++) {
+            for(let r=0; r<6; r++) {
+                let absId = c*6 + r;
+                selects.push(document.getElementById(`seat_${absId}_1`));
+                selects.push(document.getElementById(`seat_${absId}_2`));
+            }
+        }
+        selects.forEach(sel => sel.value = ""); 
+        arrangedIndices.forEach((studentIdx, i) => { if(i < selects.length) selects[i].value = studentIdx; });
+        handleSeatChange(); 
+    }
+
+    function saveSeating() {
+        const selects = document.querySelectorAll('.seat-select');
+        for(let sel of selects) {
+            if(sel.classList.contains('duplicate-warn')) { alert("⚠️ Có Học sinh bị xếp trùng vị trí. Vui lòng sửa lại!"); return; }
+        }
+
+        const seating = new Array(48).fill("");
+        selects.forEach(sel => {
+            if(sel.id.startsWith('seat_')) {
+                let parts = sel.id.split('_');
+                let deskAbs = parseInt(parts[1]);
+                let seatPos = parseInt(parts[2]) - 1; 
+                seating[deskAbs * 2 + seatPos] = sel.value;
+            }
+        });
+        localStorage.setItem('Seating_Lop11', JSON.stringify(seating));
+        
+        const layoutConfig = {
+            left: document.getElementById('leftBox').value, right: document.getElementById('rightBox').value,
+            groups: [ document.getElementById('group_col_1').value, document.getElementById('group_col_2').value, document.getElementById('group_col_3').value, document.getElementById('group_col_4').value ]
+        };
+        localStorage.setItem('SeatingLayout_Lop11', JSON.stringify(layoutConfig));
+        extractDeskMap();
+        alert("💾 Đã lưu Sơ đồ!");
+    }
+
+    function loadSeating() {
+        const savedLayout = localStorage.getItem('SeatingLayout_Lop11');
+        if (savedLayout) {
+            const config = JSON.parse(savedLayout);
+            if(config.left) document.getElementById('leftBox').value = config.left;
+            if(config.right) document.getElementById('rightBox').value = config.right;
+            if(config.groups) {
+                document.getElementById('group_col_1').value = config.groups[0];
+                document.getElementById('group_col_2').value = config.groups[1];
+                document.getElementById('group_col_3').value = config.groups[2];
+                document.getElementById('group_col_4').value = config.groups[3];
+            }
+        }
+
+        const savedSeating = localStorage.getItem('Seating_Lop11');
+        if(savedSeating) {
+            const seating = JSON.parse(savedSeating);
+            for(let i=0; i<seating.length; i+=2) {
+                let deskAbs = i/2;
+                let s1 = document.getElementById(`seat_${deskAbs}_1`);
+                let s2 = document.getElementById(`seat_${deskAbs}_2`);
+                if(s1) s1.value = seating[i];
+                if(s2) s2.value = seating[i+1];
+            }
+            handleSeatChange(); 
+        }
+    }
+
+    function extractDeskMap() {
+        deskMap = { "Tổ 1": {}, "Tổ 2": {}, "Tổ 3": {}, "Tổ 4": {} };
+        let groupsCols = [
+            document.getElementById('group_col_1').value, document.getElementById('group_col_2').value,
+            document.getElementById('group_col_3').value, document.getElementById('group_col_4').value
+        ];
+
+        for(let c=0; c<4; c++) {
+            let groupName = groupsCols[c];
+            for(let i=0; i<6; i++) { 
+                let deskNum = 6 - i; 
+                let deskAbs = c * 6 + i;
+                
+                let s1Elem = document.getElementById(`seat_${deskAbs}_1`);
+                let s2Elem = document.getElementById(`seat_${deskAbs}_2`);
+                let s1 = s1Elem ? s1Elem.value : "";
+                let s2 = s2Elem ? s2Elem.value : "";
+                
+                if((s1 && s1 !== "") || (s2 && s2 !== "")) {
+                    deskMap[groupName][deskNum.toString()] = [s1, s2];
+                }
+            }
+        }
+    }
+
+    // ==========================================
+    // MODULE 2: BẢNG PHÂN CÔNG TRỰC NHẬT LIÊN KẾT
+    // ==========================================
+    function getPunishedStudentsOptions() {
+        let opts = `<option value="">-- Chọn HS bị phạt --</option>`;
+        let hasPunish = false;
+        studentsData.forEach((s, i) => {
+            if (s.logs && s.logs.xuly) {
+                let isPunished = s.logs.xuly.some(act => act.status === 'pending' && (act.title.toLowerCase().includes('lao động') || act.title.toLowerCase().includes('trực lớp')));
+                if(isPunished) {
+                    opts += `<option value="${i}">🚨 ${s["Họ và Tên"]}</option>`;
+                    hasPunish = true;
+                }
+            }
+        });
+        if(!hasPunish) return `<option value="">(Không có HS bị phạt)</option>`;
+        return opts;
+    }
+
+    function getEvalHtml(i, hsIndexStr) {
+        return `
+            <select id="duty_eval_s${hsIndexStr}_${i}" class="eval-input good" onchange="toggleEvalInput(${i}, '${hsIndexStr}')">
+                <option value="Tốt" selected>Tốt</option>
+                <option value="Chưa đổ rác">Chưa đổ rác</option>
+                <option value="Chưa lau bảng">Chưa lau bảng</option>
+                <option value="Chưa quét lớp">Chưa quét lớp</option>
+                <option value="other">Khác ➡️</option>
+            </select>
+            <input type="text" id="duty_eval_txt_s${hsIndexStr}_${i}" class="eval-input" style="display:none; margin-top:5px;" placeholder="Ghi chú thêm...">
+        `;
+    }
+
+    function toggleEvalInput(i, hsIndexStr) {
+        const sel = document.getElementById(`duty_eval_s${hsIndexStr}_${i}`);
+        const txt = document.getElementById(`duty_eval_txt_s${hsIndexStr}_${i}`);
+        if(sel.value === 'Tốt') {
+            sel.classList.add('good'); sel.classList.remove('bad');
+            txt.style.display = 'none';
+        } else if(sel.value === 'other') {
+            sel.classList.remove('good', 'bad');
+            txt.style.display = 'block';
+        } else {
+            sel.classList.remove('good'); sel.classList.add('bad');
+            txt.style.display = 'none';
+        }
+    }
+
+    function updateWeekDates() {
+        const picker = document.getElementById('weekPicker');
+        if(!picker.value) return;
+        
+        let d = new Date(picker.value);
+        let day = d.getDay() || 7; 
+        if(day !== 1) d.setDate(d.getDate() - (day - 1)); // Lùi về Thứ 2
+
+        for(let i=0; i<5; i++) {
+            let curD = new Date(d);
+            curD.setDate(curD.getDate() + i);
+            let dateStr = curD.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
+            let dayNames = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu"];
+            document.getElementById(`day_label_${i}`).innerHTML = `${dayNames[i]}<br><span style="font-size:13px; color:#64748b; font-weight:700;">${dateStr}</span>`;
+            document.getElementById(`day_label_${i}`).dataset.date = dateStr;
+        }
+    }
+
+    function initDailyDutyTable() {
+        const days = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu"];
+        const tbody = document.getElementById('scheduleBody');
+        let html = '';
+        
+        days.forEach((day, i) => {
+            let taskHTML = `
+                <div class="task-tags">
+                    <label><input type="checkbox" id="task_${i}_quet" value="Quét lớp" checked><span>Quét lớp</span></label>
+                    <label><input type="checkbox" id="task_${i}_lau" value="Lau bảng" checked><span>Lau bảng</span></label>
+                    <label><input type="checkbox" id="task_${i}_rac" value="Đổ rác" checked><span>Đổ rác</span></label>
+                </div>
+                <input type="text" id="task_other_${i}" class="task-other-input" placeholder="Khác (nhập thêm)...">
+            `;
+
+            html += `
+                <tr>
+                    <td id="day_label_${i}" style="color: var(--dark-orange); font-weight:900; line-height: 1.6; font-size: 15px;">${day}</td>
+                    <td>
+                        <select id="duty_group_${i}" class="duty-sel-group" onchange="onDutyGroupChange(${i})">
+                            <option value="Tổ 1">Tổ 1</option><option value="Tổ 2">Tổ 2</option>
+                            <option value="Tổ 3">Tổ 3</option><option value="Tổ 4">Tổ 4</option>
+                            <option value="PHAT" style="color:var(--danger); font-weight:bold;">🚨 Phạt Trực</option>
+                            <option value="KHAC" style="color:var(--purple); font-weight:bold;">🌟 Tự chọn (Khác)</option>
+                        </select>
+                    </td>
+                    <td><select id="duty_desk_${i}" class="duty-sel-desk" onchange="onDutyDeskChange(${i})"></select></td>
+                    <td><div id="duty_s1_box_${i}" class="student-box">--</div>${getEvalHtml(i, '1')}</td>
+                    <td><div id="duty_s2_box_${i}" class="student-box">--</div>${getEvalHtml(i, '2')}</td>
+                    <td>${taskHTML}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+        
+        document.getElementById('weekPicker').valueAsDate = new Date();
+        updateWeekDates();
+    }
+
+    function onDutyGroupChange(dayIdx) {
+        let groupSel = document.getElementById(`duty_group_${dayIdx}`);
+        let deskSel = document.getElementById(`duty_desk_${dayIdx}`);
+        let s1Box = document.getElementById(`duty_s1_box_${dayIdx}`);
+        let s2Box = document.getElementById(`duty_s2_box_${dayIdx}`);
+        let eval2Sel = document.getElementById(`duty_eval_s2_${dayIdx}`);
+        
+        if (groupSel.value === "PHAT") {
+            groupSel.classList.add('phat'); groupSel.classList.remove('khac');
+            deskSel.style.display = "none";
+            s1Box.classList.add('phat-select'); s1Box.classList.remove('khac-select');
+            s1Box.innerHTML = `<select id="duty_s1_val_${dayIdx}">${getPunishedStudentsOptions()}</select>`;
+            s2Box.style.display = "none"; eval2Sel.style.display = "none";
+            
+        } else if (groupSel.value === "KHAC") {
+            groupSel.classList.add('khac'); groupSel.classList.remove('phat');
+            deskSel.style.display = "none";
+            s2Box.style.display = "block"; eval2Sel.style.display = "block";
+            
+            s1Box.classList.add('khac-select'); s1Box.classList.remove('phat-select');
+            s1Box.innerHTML = `<select id="duty_s1_val_${dayIdx}">${getAllStudentsOptions()}</select>`;
+            s2Box.classList.add('khac-select');
+            s2Box.innerHTML = `<select id="duty_s2_val_${dayIdx}">${getAllStudentsOptions()}</select>`;
+            
+        } else {
+            groupSel.classList.remove('phat', 'khac');
+            deskSel.style.display = "block";
+            s2Box.style.display = "flex"; eval2Sel.style.display = "block";
+            s1Box.classList.remove('phat-select', 'khac-select');
+            s2Box.classList.remove('khac-select');
+            
+            let desks = deskMap[groupSel.value];
+            let deskOpts = `<option value="">- Bàn -</option>`;
+            if (desks) {
+                Object.keys(desks).sort().forEach(dNum => { deskOpts += `<option value="${dNum}">Bàn ${dNum}</option>`; });
+            }
+            deskSel.innerHTML = deskOpts;
+            s1Box.innerHTML = `--`; s2Box.innerHTML = `--`;
+            s1Box.dataset.val = ""; s2Box.dataset.val = "";
+        }
+    }
+
+    function onDutyDeskChange(dayIdx) {
+        let group = document.getElementById(`duty_group_${dayIdx}`).value;
+        let deskNum = document.getElementById(`duty_desk_${dayIdx}`).value;
+        let s1Box = document.getElementById(`duty_s1_box_${dayIdx}`);
+        let s2Box = document.getElementById(`duty_s2_box_${dayIdx}`);
+
+        if (group === "PHAT" || group === "KHAC" || deskNum === "") {
+            if(group !== "PHAT" && group !== "KHAC") { s1Box.innerHTML = `--`; s2Box.innerHTML = `--`; s1Box.dataset.val = ""; s2Box.dataset.val = ""; }
+            return;
+        }
+
+        let hsArray = deskMap[group][deskNum];
+        let hs1_id = hsArray[0]; let hs2_id = hsArray[1];
+
+        s1Box.innerHTML = (hs1_id !== "" && hs1_id !== null) ? studentsData[hs1_id]["Họ và Tên"] : "<i style='color:#cbd5e1'>Trống</i>";
+        s1Box.dataset.val = hs1_id;
+        s2Box.innerHTML = (hs2_id !== "" && hs2_id !== null) ? studentsData[hs2_id]["Họ và Tên"] : "<i style='color:#cbd5e1'>Trống</i>";
+        s2Box.dataset.val = hs2_id;
+    }
+
+    function refreshAllDutyRows() {
+        for(let i=0; i<5; i++) {
+            let grp = document.getElementById(`duty_group_${i}`).value;
+            let desk = document.getElementById(`duty_desk_${i}`).value;
+            onDutyGroupChange(i);
+            
+            if (grp !== "PHAT" && grp !== "KHAC") {
+                let deskSel = document.getElementById(`duty_desk_${i}`);
+                let options = Array.from(deskSel.options).map(o => o.value);
+                if (options.includes(desk)) { 
+                    deskSel.value = desk; 
+                    onDutyDeskChange(i); 
+                }
+            }
+        }
+    }
+
+    function getSequentialPairs() {
+        extractDeskMap(); 
+        let masterPairs = [];
+        let groupOrder = [
+            document.getElementById('group_col_1').value,
+            document.getElementById('group_col_2').value,
+            document.getElementById('group_col_3').value,
+            document.getElementById('group_col_4').value
+        ];
+
+        groupOrder.forEach(grp => {
+            for(let d=1; d<=6; d++) {
+                let dStr = d.toString();
+                if(deskMap[grp] && deskMap[grp][dStr]) {
+                    masterPairs.push({ group: grp, desk: dStr, pair: deskMap[grp][dStr] });
+                }
+            }
+        });
+        return masterPairs;
+    }
+
+    // TÍNH NĂNG MỚI: PHÂN CÔNG LẠI TỪ ĐẦU (RESET)
+    function resetDutyList() {
+        if(!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa TOÀN BỘ phân công trực nhật hiện tại và bắt đầu lại từ đầu? Lịch sử trực nhật đã lưu vẫn sẽ được giữ lại.")) return;
+        
+        localStorage.removeItem('DutySchedule_Lop11');
+        localStorage.removeItem('DutyPairIndex_Lop11');
+        
+        initDailyDutyTable();
+        for(let i=0; i<5; i++) onDutyGroupChange(i);
+        
+        alert("🔄 Đã reset danh sách phân công trực nhật thành công!");
+    }
+
+    // LOGIC ĐÃ ĐƯỢC CHỈNH SỬA: Tự động dò tìm bàn cuối cùng của tuần hiện tại làm mốc
+    function assignSequentialDuty() {
+        let masterPairs = getSequentialPairs();
+        if(masterPairs.length === 0) { alert("Sơ đồ lớp chưa có học sinh!"); return; }
+
+        // B1: Tìm xem bàn cuối cùng được trực hợp lệ trong bảng hiển thị là bàn nào
+        let lastValidIndex = -1;
+        for(let i=4; i>=0; i--) {
+            let grp = document.getElementById(`duty_group_${i}`).value;
+            let desk = document.getElementById(`duty_desk_${i}`).value;
+            if(grp !== "PHAT" && grp !== "KHAC" && desk !== "") {
+                let foundIdx = masterPairs.findIndex(p => p.group === grp && p.desk === desk);
+                if(foundIdx !== -1) {
+                    lastValidIndex = foundIdx;
+                    break;
+                }
+            }
+        }
+
+        // B2: Xác định index phân công tiếp theo
+        let nextIndex = 0;
+        if (lastValidIndex !== -1) {
+            nextIndex = lastValidIndex + 1; // Lấy bàn tiếp theo
+        } else {
+            nextIndex = parseInt(localStorage.getItem('DutyPairIndex_Lop11')) || 0;
+        }
+
+        // B3: Thực hiện gán vào bảng
+        for(let i=0; i<5; i++) {
+            let current = masterPairs[nextIndex % masterPairs.length];
+            document.getElementById(`duty_group_${i}`).value = current.group;
+            onDutyGroupChange(i);
+            document.getElementById(`duty_desk_${i}`).value = current.desk;
+            onDutyDeskChange(i);
+            nextIndex++;
+        }
+        
+        // Lưu mốc mới này lại để phòng hờ
+        localStorage.setItem('DutyPairIndex_Lop11', nextIndex);
+    }
+
+    function resetNewWeek() {
+        if(!confirm("Bắt đầu phân công cho tuần mới? Hệ thống sẽ làm sạch đánh giá, lùi lịch tới 7 ngày tiếp theo và xoay vòng trực nhật nối tiếp tuần hiện tại.")) return;
+
+        let picker = document.getElementById('weekPicker');
+        if(picker.value) {
+            let d = new Date(picker.value);
+            d.setDate(d.getDate() + 7);
+            picker.valueAsDate = d;
+        } else {
+            picker.valueAsDate = new Date();
+        }
+        updateWeekDates();
+
+        for(let i=0; i<5; i++) {
+            document.getElementById(`duty_eval_s1_${i}`).value = 'Tốt';
+            document.getElementById(`duty_eval_s2_${i}`).value = 'Tốt';
+            toggleEvalInput(i, '1'); toggleEvalInput(i, '2');
+            document.getElementById(`duty_eval_txt_s1_${i}`).value = '';
+            document.getElementById(`duty_eval_txt_s2_${i}`).value = '';
+
+            document.getElementById(`task_${i}_quet`).checked = true;
+            document.getElementById(`task_${i}_lau`).checked = true;
+            document.getElementById(`task_${i}_rac`).checked = true;
+            document.getElementById(`task_other_${i}`).value = '';
+        }
+
+        assignSequentialDuty(); // Sẽ chạy với thuật toán thông minh dò theo giao diện đã chỉnh sửa
+    }
+
+    function saveDuty() {
+        const weekDate = document.getElementById('weekPicker').value;
+        if(!weekDate) { alert("Vui lòng chọn Tuần Trực trước khi lưu!"); return; }
+
+        let master = JSON.parse(localStorage.getItem('DuLieu_Lop11_Master'));
+
+        const dutyData = [];
+        for(let i=0; i<5; i++) {
+            let group = document.getElementById(`duty_group_${i}`).value;
+            let desk = document.getElementById(`duty_desk_${i}`).value;
+            let hs1 = "", hs2 = "";
+
+            if (group === "PHAT" || group === "KHAC") {
+                let sel1 = document.getElementById(`duty_s1_val_${i}`);
+                if(sel1) hs1 = sel1.value;
+                if(group === "KHAC") {
+                    let sel2 = document.getElementById(`duty_s2_val_${i}`);
+                    if(sel2) hs2 = sel2.value;
+                }
+            } else {
+                hs1 = document.getElementById(`duty_s1_box_${i}`).dataset.val || "";
+                hs2 = document.getElementById(`duty_s2_box_${i}`).dataset.val || "";
+            }
+
+            let cbxTasks = [];
+            ['quet', 'lau', 'rac'].forEach(tid => {
+                let cb = document.getElementById(`task_${i}_${tid}`);
+                if(cb && cb.checked) cbxTasks.push(cb.value);
+            });
+
+            let eval1 = document.getElementById(`duty_eval_s1_${i}`).value;
+            let eval2 = document.getElementById(`duty_eval_s2_${i}`).value;
+
+            // XỬ LÝ CHỐT KỶ LUẬT TỰ ĐỘNG
+            if (group === "PHAT" && hs1 !== "" && eval1 === "Tốt") {
+                let s = master[hs1];
+                if (s && s.logs && s.logs.xuly) {
+                    let pAct = s.logs.xuly.find(a => a.status === 'pending' && (a.title.toLowerCase().includes('lao động') || a.title.toLowerCase().includes('trực lớp')));
+                    if (pAct) {
+                        pAct.status = 'done';
+                        pAct.dateResolved = document.getElementById(`day_label_${i}`).dataset.date;
+                        pAct.note = "Đã trực phạt TỐT và hoàn thành nhiệm vụ xuất sắc.";
+                    }
+                }
+            }
+
+            dutyData.push({
+                group: group, desk: desk, hs1: hs1, hs2: hs2,
+                cbxTasks: cbxTasks, otherTask: document.getElementById(`task_other_${i}`).value,
+                eval1: eval1, evalTxt1: document.getElementById(`duty_eval_txt_s1_${i}`).value,
+                eval2: eval2, evalTxt2: document.getElementById(`duty_eval_txt_s2_${i}`).value,
+                date: document.getElementById(`day_label_${i}`).dataset.date
+            });
+        }
+        
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(master)); // Save Auto-resolve
+        localStorage.setItem('DutySchedule_Lop11', JSON.stringify(dutyData));
+        localStorage.setItem('DutyWeek_Lop11', weekDate);
+
+        let history = JSON.parse(localStorage.getItem('DutyHistory_Lop11')) || {};
+        history[weekDate] = dutyData;
+        localStorage.setItem('DutyHistory_Lop11', JSON.stringify(history));
+
+        alert("💾 Đã lưu vào Bảng Trực và Ghi nhận Lịch sử Thống kê thành công!");
+        checkDutyWarnings();
+        if (document.getElementById('tab-thongke').classList.contains('active')) renderStatistics();
+    }
+
+    function loadDuty() {
+        const savedWeek = localStorage.getItem('DutyWeek_Lop11');
+        if (savedWeek) { document.getElementById('weekPicker').value = savedWeek; updateWeekDates(); }
+
+        const saved = localStorage.getItem('DutySchedule_Lop11');
+        if(saved) {
+            const dutyData = JSON.parse(saved);
+            dutyData.forEach((data, i) => {
+                document.getElementById(`duty_group_${i}`).value = data.group || "Tổ 1";
+                onDutyGroupChange(i);
+                
+                if (data.group === "PHAT" || data.group === "KHAC") {
+                    let sel1 = document.getElementById(`duty_s1_val_${i}`);
+                    if(sel1) sel1.value = data.hs1;
+                    if(data.group === "KHAC") {
+                        let sel2 = document.getElementById(`duty_s2_val_${i}`);
+                        if(sel2) sel2.value = data.hs2;
+                    }
+                } else {
+                    document.getElementById(`duty_desk_${i}`).value = data.desk || "";
+                    onDutyDeskChange(i);
+                }
+
+                if(data.cbxTasks) {
+                    ['quet', 'lau', 'rac'].forEach(tid => {
+                        let cb = document.getElementById(`task_${i}_${tid}`);
+                        if(cb) cb.checked = data.cbxTasks.includes(cb.value);
+                    });
+                }
+                document.getElementById(`task_other_${i}`).value = data.otherTask || "";
+                
+                let evalSel1 = document.getElementById(`duty_eval_s1_${i}`);
+                if(evalSel1) { evalSel1.value = data.eval1 || "Tốt"; toggleEvalInput(i, '1'); document.getElementById(`duty_eval_txt_s1_${i}`).value = data.evalTxt1 || ""; }
+                
+                let evalSel2 = document.getElementById(`duty_eval_s2_${i}`);
+                if(evalSel2) { evalSel2.value = data.eval2 || "Tốt"; toggleEvalInput(i, '2'); document.getElementById(`duty_eval_txt_s2_${i}`).value = data.evalTxt2 || ""; }
+            });
+        } else {
+            for(let i=0; i<5; i++) onDutyGroupChange(i);
+        }
+    }
+
+    // TÍNH NĂNG MỚI: IN DANH SÁCH TRỰC NHẬT THEO TUẦN
+    function printDuty() {
+        let week = document.getElementById('weekPicker').value;
+        if(!week) { alert("Vui lòng chọn tuần trực trước khi in!"); return; }
+        
+        let d = new Date(week);
+        let day = d.getDay() || 7; 
+        if(day !== 1) d.setDate(d.getDate() - (day - 1));
+        let dStr = d.toLocaleDateString('vi-VN');
+
+        let html = `
+            <div class="print-header">
+                <h2>LỊCH TRỰC NHẬT TẠI LỚP</h2>
+                <p style="font-size: 14pt; margin-top: 5px; font-weight: bold;">Tuần bắt đầu từ ngày ${dStr}</p>
+            </div>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Thứ / Ngày</th>
+                        <th style="width: 15%;">Tổ / Bàn</th>
+                        <th style="width: 25%;">Học sinh 1</th>
+                        <th style="width: 25%;">Học sinh 2</th>
+                        <th style="width: 20%;">Nhiệm vụ</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+        
+        for(let i=0; i<5; i++) {
+            let dayLabel = document.getElementById(`day_label_${i}`).innerText.replace('\n', '<br><span style="font-size:12pt; font-weight:normal;">');
+            dayLabel += '</span>';
+
+            let groupVal = document.getElementById(`duty_group_${i}`).value;
+            let groupTxt = document.getElementById(`duty_group_${i}`).options[document.getElementById(`duty_group_${i}`).selectedIndex].text;
+            let deskTxt = document.getElementById(`duty_desk_${i}`).options[document.getElementById(`duty_desk_${i}`).selectedIndex]?.text || "";
+            
+            if(groupVal === "PHAT" || groupVal === "KHAC") deskTxt = "";
+            
+            let s1 = "", s2 = "";
+            if(groupVal === "PHAT" || groupVal === "KHAC") {
+                let s1Sel = document.getElementById(`duty_s1_val_${i}`);
+                s1 = (s1Sel && s1Sel.selectedIndex > 0) ? s1Sel.options[s1Sel.selectedIndex].text.replace('🚨 ', '') : "";
+                if(groupVal === "KHAC") {
+                    let s2Sel = document.getElementById(`duty_s2_val_${i}`);
+                    s2 = (s2Sel && s2Sel.selectedIndex > 0) ? s2Sel.options[s2Sel.selectedIndex].text : "";
+                }
+            } else {
+                s1 = document.getElementById(`duty_s1_box_${i}`).innerText;
+                s2 = document.getElementById(`duty_s2_box_${i}`).innerText;
+            }
+            if(s1 === '--') s1 = "";
+            if(s2 === '--') s2 = "";
+            
+            let tasks = [];
+            ['quet', 'lau', 'rac'].forEach(tid => {
+                let cb = document.getElementById(`task_${i}_${tid}`);
+                if(cb && cb.checked) tasks.push(cb.value);
+            });
+            let otherTask = document.getElementById(`task_other_${i}`).value;
+            if(otherTask) tasks.push(otherTask);
+            
+            html += `
+                <tr>
+                    <td><b>${dayLabel}</b></td>
+                    <td><b>${groupTxt}</b> ${deskTxt ? '<br>' + deskTxt : ''}</td>
+                    <td style="font-weight: bold; text-align: left; padding-left: 15px;">${s1}</td>
+                    <td style="font-weight: bold; text-align: left; padding-left: 15px;">${s2}</td>
+                    <td>${tasks.join(', ')}</td>
+                </tr>`;
+        }
+        
+        html += `</tbody></table>`;
+        document.getElementById('printDutyContainer').innerHTML = html;
+        
+        // Chuyển sang chế độ in Trực nhật
+        document.body.classList.add('print-duty-mode');
+        window.print();
+        // Thoát chế độ in sau khi hoàn tất
+        document.body.classList.remove('print-duty-mode');
+    }
+
+    // --- HỆ THỐNG CẢNH BÁO ---
+    function checkDutyWarnings() {
+        const history = JSON.parse(localStorage.getItem('DutyHistory_Lop11')) || {};
+        let badCounts = {};
+        
+        for (let week in history) {
+            history[week].forEach(day => {
+                let s1 = parseInt(day.hs1); let s2 = parseInt(day.hs2);
+                let isBad1 = day.eval1 !== 'Tốt' && day.eval1 !== ''; 
+                let isBad2 = day.eval2 !== 'Tốt' && day.eval2 !== ''; 
+                
+                if (!isNaN(s1) && isBad1 && studentsData[s1]) badCounts[s1] = (badCounts[s1] || 0) + 1;
+                if (!isNaN(s2) && isBad2 && studentsData[s2]) badCounts[s2] = (badCounts[s2] || 0) + 1;
+            });
+        }
+
+        let warningHTML = "";
+        for (let idx in badCounts) {
+            if (badCounts[idx] >= 2 && studentsData[idx]) {
+                warningHTML += `<span class="w-tag">⚠️ ${studentsData[idx]["Họ và Tên"]} (${badCounts[idx]} lần kém)</span>`;
+            }
+        }
+
+        const box = document.getElementById('dutyWarningBox');
+        if (warningHTML !== "") {
+            box.style.display = 'block'; document.getElementById('dutyWarningTags').innerHTML = warningHTML;
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    // ==========================================
+    // MODULE 3: THỐNG KÊ 
+    // ==========================================
+    function renderStatistics() {
+        const history = JSON.parse(localStorage.getItem('DutyHistory_Lop11')) || {};
+        let stats = {};
+        
+        studentsData.forEach((s, i) => { stats[i] = { name: s["Họ và Tên"], total: 0, good: 0, bad: 0, details: [] }; });
+
+        for (let week in history) {
+            history[week].forEach(day => {
+                let s1 = parseInt(day.hs1); let s2 = parseInt(day.hs2);
+                let isGood1 = day.eval1 === 'Tốt'; let isBad1 = day.eval1 !== 'Tốt' && day.eval1 !== ''; 
+                let isGood2 = day.eval2 === 'Tốt'; let isBad2 = day.eval2 !== 'Tốt' && day.eval2 !== ''; 
+                
+                let evalText1 = day.eval1 === 'other' ? day.evalTxt1 : day.eval1;
+                let evalText2 = day.eval2 === 'other' ? day.evalTxt2 : day.eval2;
+
+                if (!isNaN(s1) && s1 < studentsData.length) {
+                    stats[s1].total++;
+                    if (isGood1) stats[s1].good++;
+                    if (isBad1) { stats[s1].bad++; stats[s1].details.push(`${day.date}: ${evalText1}`); }
+                }
+                if (!isNaN(s2) && s2 < studentsData.length) {
+                    stats[s2].total++;
+                    if (isGood2) stats[s2].good++;
+                    if (isBad2) { stats[s2].bad++; stats[s2].details.push(`${day.date}: ${evalText2}`); }
+                }
+            });
+        }
+
+        let statArray = Object.keys(stats).map(key => ({ id: key, ...stats[key] }));
+        let topGood = [...statArray].sort((a,b) => b.good - a.good).filter(s => s.good > 0).slice(0, 3);
+        let topBad = [...statArray].sort((a,b) => b.bad - a.bad).filter(s => s.bad > 0).slice(0, 3);
+
+        document.getElementById('topGoodList').innerHTML = topGood.length > 0 ? 
+            topGood.map(s => `<div class="s-list-item"><span>🌟 ${s.name}</span> <span class="score">${s.good} lần Tốt</span></div>`).join('') :
+            '<div style="color:#94a3b8; font-style:italic;">Chưa có dữ liệu.</div>';
+            
+        document.getElementById('topBadList').innerHTML = topBad.length > 0 ? 
+            topBad.map(s => `<div class="s-list-item"><span>⚠️ ${s.name}</span> <span class="score">${s.bad} lần Vi phạm</span></div>`).join('') :
+            '<div style="color:var(--success); font-weight:800;">Tuyệt vời, không có học sinh vi phạm.</div>';
+
+        let tbody = document.getElementById('statsTableBody');
+        if (Object.keys(history).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="color:#94a3b8; font-style:italic; padding: 30px;">Chưa có dữ liệu thống kê. Vui lòng "Lưu & Chốt Lịch Trực" ở Tab Trực Nhật.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = statArray.map((s, index) => {
+            let errorText = s.details.length > 0 ? `<ul style="margin:0; padding-left:15px; text-align:left; font-size:13px; color:var(--danger); font-weight:700;">${s.details.map(d=>`<li>${d}</li>`).join('')}</ul>` : '<span style="color:#cbd5e1;">-</span>';
+            return `
+                <tr>
+                    <td><b>${index + 1}</b></td>
+                    <td style="text-align:left; padding-left:20px; font-weight:800; color:var(--text-main);">${s.name}</td>
+                    <td style="font-weight:900; color:var(--info); font-size:16px;">${s.total}</td>
+                    <td style="font-weight:900; color:var(--success); font-size:16px;">${s.good}</td>
+                    <td style="font-weight:900; color:var(--danger); font-size:16px;">${s.bad}</td>
+                    <td>${errorText}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function clearStatsHistory() {
+        if(confirm("⚠️ CẢNH BÁO: XÓA TOÀN BỘ LỊCH SỬ THỐNG KÊ TRỰC NHẬT TỪ TRƯỚC ĐẾN NAY? Hành động này không thể hoàn tác!")) {
+            localStorage.removeItem('DutyHistory_Lop11');
+            renderStatistics();
+            checkDutyWarnings();
+            alert("Đã xóa sạch lịch sử thống kê.");
+        }
+    }
+</script>
+</body>
+</html>

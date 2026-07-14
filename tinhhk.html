@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tính Điểm Rèn Luyện 11A7</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .score-box { font-size: 1.5rem; font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4">Hệ Thống Tính Điểm Rèn Luyện</h2>
+        
+        <!-- Hoạt động phong trào -->
+        <div class="card p-3">
+            <h5>Số hoạt động phong trào (+2đ/hoạt động)</h5>
+            <p><small>Gợi ý: Lớp trưởng/Đoàn/CLB/HSG/Thi đua... (theo quy định[cite: 4])</small></p>
+            <input type="number" id="activityCount" class="form-control" value="0" min="0">
+        </div>
+
+        <!-- Lỗi vi phạm -->
+        <div class="card p-3">
+            <h5>Danh sách vi phạm</h5>
+            <div id="infractionsList"></div>
+        </div>
+
+        <button class="btn btn-primary w-100" onclick="calculate()">Tính Điểm</button>
+
+        <div class="card p-3 mt-4">
+            <h5>Kết quả: <span id="finalScore" class="score-box">100</span></h5>
+            <h5>Xếp loại: <span id="rank" class="badge">--</span></h5>
+        </div>
+    </div>
+
+    <script>
+        const infractions = [
+            { desc: "Nghỉ học/đi trễ/không phép/trốn tiết...", points: 1 },
+            { desc: "Không trung thực/Đăng tin sai lệch/Sử dụng tài sản trường", points: 5 },
+            { desc: "Gian lận thi/Rượu bia/Đánh nhau/Vô lễ/Chất cấm...", points: 10 }
+        ];
+
+        const listContainer = document.getElementById('infractionsList');
+        infractions.forEach((item, index) => {
+            listContainer.innerHTML += `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="${item.points}" id="inf${index}">
+                    <label class="form-check-label" for="inf${index}">
+                        ${item.desc} (-${item.points}đ)
+                    </label>
+                </div>
+            `;
+        });
+
+        function calculate() {
+            let score = 100;
+            const activities = parseInt(document.getElementById('activityCount').value) || 0;
+            score += (activities * 2);
+
+            document.querySelectorAll('.form-check-input:checked').forEach(cb => {
+                score -= parseInt(cb.value);
+            });
+
+            document.getElementById('finalScore').innerText = score;
+            
+            let rank = "";
+            let color = "";
+            if (score >= 80) { rank = "Tốt"; color = "bg-success"; }
+            else if (score >= 60) { rank = "Khá"; color = "bg-primary"; }
+            else if (score >= 40) { rank = "Đạt"; color = "bg-warning"; }
+            else { rank = "Chưa đạt"; color = "bg-danger"; }
+
+            const badge = document.getElementById('rank');
+            badge.innerText = rank;
+            badge.className = "badge " + color;
+        }
+    </script>
+</body>
+</html>

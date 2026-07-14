@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết Quả Rèn Luyện - GVCN Cam Bích Hằng</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary-orange: #f97316; --dark-orange: #ea580c; --light-orange: #fff7ed;
+            --info: #0ea5e9; --info-dark: #0284c7; --info-light: #e0f2fe;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --purple: #8b5cf6;
+            --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+            --bg-body: #f8fafc; --card-bg: #ffffff;
+        }
+
+        /* Ép đồng bộ Font chữ cho TẤT CẢ các thành phần trên web để chống lỗi font */
+        body, input, select, button, textarea { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            color: var(--text-main); 
+        }
+
+        body { 
+            background-color: var(--bg-body); 
+            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); 
+            background-size: 30px 30px; 
+            margin: 0; 
+            line-height: 1.5; 
+        }
+        
+        .header { background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange)); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 10px 30px rgba(234, 88, 12, 0.2); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 40px; position: relative;}
+        .header h1 { margin: 0 0 5px 0; font-weight: 900; font-size: 1.9em; text-transform: uppercase; letter-spacing: 0.5px;}
+        .btn-back { position: absolute; left: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;}
+        .btn-back:hover { background: white; color: var(--dark-orange); box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+
+        .container { max-width: 1300px; margin: 0 auto 50px auto; background: rgba(255, 255, 255, 0.98); padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        
+        /* Khu vực nhập liệu */
+        .input-section { background: var(--card-bg); padding: 30px; border-radius: 16px; border: 2px dashed #fed7aa; margin-bottom: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .input-section h2 { margin-top: 0; color: var(--dark-orange); font-size: 1.5em; margin-bottom: 25px; font-weight: 900;}
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px;}
+        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 15px; transition: all 0.3s; color: var(--text-main); background: white;}
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary-orange); box-shadow: 0 0 0 3px var(--light-orange); }
+        .hint { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+
+        .absence-box { background: #fff1f2; padding: 20px; border-radius: 12px; border: 1px solid #fecaca; margin-top: 20px; }
+        .absence-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 15px; }
+        .absence-box h3 { margin-top: 0; font-size: 14px; color: var(--danger); margin-bottom: 15px; text-transform: uppercase; font-weight: 800;}
+
+        .btn-group { display: flex; gap: 15px; margin-top: 30px; }
+        .btn { padding: 14px 25px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 15px; transition: 0.3s; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); filter: brightness(1.05); }
+        .btn-submit { background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange)); flex-grow: 1; }
+        .btn-reset { background: linear-gradient(135deg, var(--danger), #b91c1c); }
+
+        /* Bảng hiển thị */
+        .table-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color);}
+        .btn-export-class { background: linear-gradient(135deg, var(--success), #059669); padding: 12px 24px; border-radius: 12px; color: white; border: none; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 10px rgba(16,185,129,0.2);}
+        .btn-export-class:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(16,185,129,0.3); }
+
+        .table-container { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
+        th { background: #f1f5f9; color: var(--text-main); padding: 16px 12px; font-weight: 900; text-transform: uppercase; font-size: 13px; white-space: nowrap; border-bottom: 2px solid var(--border-color); text-align: center;}
+        td { padding: 15px 12px; border-bottom: 1px solid var(--border-color); text-align: center; font-size: 14.5px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f8fafc; }
+
+        .rank-tot { color: var(--success); font-weight: 900; }
+        .rank-kha { color: var(--info-dark); font-weight: 900; }
+        .rank-dat { color: var(--warning); font-weight: 900; }
+        .rank-chuadat { color: var(--danger); font-weight: 900; }
+
+        .score-badge { font-weight: 900; font-size: 16px; }
+        .score-minus { color: var(--danger); }
+        .score-plus { color: var(--info-dark); }
+        .score-total { color: var(--text-main); font-size: 16px; padding: 6px 12px; background: #f1f5f9; border-radius: 8px;}
+
+        .btn-detail { background: var(--info-light); color: var(--info-dark); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 800; border: 1px solid #bae6fd; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+        .btn-detail:hover { background: var(--info); color: white; border-color: var(--info); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(14,165,233,0.2);}
+
+        .status-badge { padding: 6px 12px; border-radius: 12px; font-size: 12.5px; font-weight: 800; white-space: nowrap;}
+        .status-alert { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;}
+        .status-warning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a;}
+        .status-safe { background: #f0fdf4; color: #047857; border: 1px solid #a7f3d0;}
+
+        /* ========================================= */
+        /* GIAO DIỆN MODAL KẾT QUẢ RÈN LUYỆN (PASTEL) */
+        /* ========================================= */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: 0.3s;}
+        .modal-overlay.active { display: flex; opacity: 1;}
+        
+        .p-modal-content { background: var(--card-bg); border-radius: 20px; padding: 35px; position: relative; width: 950px; max-width: 95%; max-height: 90vh; overflow-y: auto; margin: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.95); transition: 0.3s; border-top: 6px solid var(--info-dark);}
+        .modal-overlay.active .p-modal-content { transform: scale(1); }
+        .p-modal-content::-webkit-scrollbar { width: 8px; }
+        .p-modal-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .close-btn { position: absolute; top: 25px; right: 25px; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; color: var(--text-muted); border: none; background: #f1f5f9; transition: 0.2s; font-weight: bold; z-index: 10; display:flex; align-items:center; justify-content:center;}
+        .close-btn:hover { background: var(--danger-light); color: var(--danger); transform: rotate(90deg); }
+
+        .p-header { text-align: center; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;}
+        .p-header h2 { margin: 0; color: var(--info-dark); font-size: 24px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 10px; text-transform: uppercase;}
+
+        /* Khối hiển thị điểm số */
+        .p-score-board { display: flex; justify-content: space-around; background: white; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .p-score-item { text-align: center; }
+        .p-score-item label { display: block; font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;}
+        .p-score-item span { font-size: 28px; font-weight: 900; }
+        
+        .p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .p-card { border-radius: 16px; padding: 25px; border: 1px solid var(--border-color);}
+        .p-card h3 { margin: 0 0 20px 0; font-size: 15px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; gap: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px;}
+
+        /* Card Vi Phạm (Đỏ) */
+        .p-card-red { background: #fef2f2; border-left: 6px solid #fca5a5; }
+        .p-card-red h3 { color: #b91c1c; border-bottom-color: #fecaca;}
+
+        /* Card Phong Trào (Xanh) */
+        .p-card-blue { background: #f0f9ff; border-left: 6px solid #7dd3fc; }
+        .p-card-blue h3 { color: #0369a1; border-bottom-color: #bae6fd;}
+
+        /* Card Nhận Xét (Tím) */
+        .p-card-purple { background: #faf5ff; border-left: 6px solid #d8b4fe; margin-bottom: 25px; }
+        .p-card-purple h3 { color: #7e22ce; border-bottom-color: #e9d5ff;}
+
+        /* Card Xếp Loại (Cam) */
+        .p-card-orange { background: #fffbeb; border-left: 6px solid #fcd34d; text-align: center; padding: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        .p-card-orange label { font-size: 14px; color: #b45309; font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 8px;}
+
+        /* Nội dung Text & List */
+        .p-content-box { font-size: 15px; line-height: 1.7; color: var(--text-main); font-weight: 500;}
+        
+        .p-list { display: flex; flex-direction: column; gap: 10px; }
+        .p-list-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 10px;}
+        .p-list-content { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; color: var(--text-main); font-weight: 700;}
+        .p-list-content span { font-size: 12.5px; color: var(--text-muted); font-weight: 500; display: block; margin-top: 4px;}
+        .p-icon-check { font-weight: bold; margin-top: 2px; font-size: 16px;}
+        
+        .btn-del-item { background: transparent; border: none; color: var(--text-muted); font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; padding: 4px 8px; border-radius: 6px;}
+        .btn-del-item:hover { background: var(--danger-light); color: var(--danger); transform: scale(1.1); }
+
+        .export-bar { display: flex; gap: 15px; justify-content: center; margin-top: 25px; border-top: 2px dashed var(--border-color); padding-top: 25px; }
+        .btn-export-excel { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-export-pdf { background: linear-gradient(135deg, #64748b, #475569); }
+
+        /* ========================================= */
+        /* CSS CHUẨN IN ẤN (LINH ĐỘNG NHIỀU TRANG, ĐỒNG BỘ FONT) */
+        /* ========================================= */
+        @media print {
+            @page { margin: 1.5cm; }
+            
+            body { 
+                background: white; 
+                margin: 0; 
+                padding: 0; 
+                color: #000; 
+                font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            }
+            
+            /* Ẩn toàn bộ giao diện phía sau, chỉ hiển thị modal đang bật */
+            body > *:not(.modal-overlay.active) { 
+                display: none !important; 
+            }
+            
+            /* Giải phóng modal khỏi ràng buộc cố định (fixed/absolute) */
+            .modal-overlay.active {
+                position: static !important;
+                display: block !important;
+                background: transparent !important;
+                backdrop-filter: none !important;
+            }
+            
+            /* Cho phép nội dung bên trong modal tràn trang thoải mái */
+            .p-modal-content {
+                position: static !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                border: none !important;
+                transform: none !important;
+                overflow: visible !important;
+                max-height: none !important;
+                height: auto !important;
+            }
+
+            /* Ẩn các nút bấm, nút xóa, thanh xuất file khi in */
+            .close-btn, .export-bar, .btn-del-item, .hint { 
+                display: none !important; 
+            }
+            
+            /* Kẻ khung cho các khối thông tin */
+            .p-score-board, .p-card { 
+                border: 1px solid #000 !important; 
+                box-shadow: none !important;
+                page-break-inside: avoid; /* Hạn chế cắt ngang khối bảng điểm */
+            }
+            
+            /* Bỏ màu nền để tiết kiệm mực in, tối ưu hiển thị trắng đen */
+            .p-card-red, .p-card-blue, .p-card-purple, .p-card-orange { 
+                background: white !important; 
+                border-left-width: 1px !important;
+            }
+            
+            /* Cấu trúc các dòng list item không bị cắt nửa chữ giữa 2 trang in */
+            .p-list-item { 
+                background: transparent !important; 
+                page-break-inside: avoid; 
+                border-bottom: 1px dashed #ccc;
+            }
+            .p-list-item:last-child { 
+                border-bottom: none; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="btn-back">⬅ Quay Lại Trang Chủ</a>
+    <h1>NHẬT KÝ RÈN LUYỆN & THEO DÕI NỀ NẾP</h1>
+</div>
+
+<div class="container">
+    <div class="input-section">
+        <h2>📝 Ghi Nhận Dữ Liệu Nhanh</h2>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label>👤 Chọn Học Sinh</label>
+                <select id="selStudent">
+                    <option value="">-- Vui lòng chọn học sinh --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>⚠️ Lỗi Vi Phạm Nề Nếp</label>
+                <input type="text" id="txtViPham" placeholder="VD: Đi trễ, Không thuộc bài, KTTTHK, KP">
+                <div class="hint" style="color: var(--info-dark); font-weight: bold;">Mẹo: Gõ "CP [lý do]" hoặc "KP [lý do]" để tự động ghi nhận vắng học.</div>
+            </div>
+            <div class="form-group">
+                <label>🏆 Phong Trào / Hoạt Động</label>
+                <input type="text" id="txtPhongTrao" placeholder="VD: Đá bóng; Văn nghệ 20/11">
+                <div class="hint">Ngăn cách các hoạt động bằng dấu phẩy (,) hoặc chấm phẩy (;)</div>
+            </div>
+        </div>
+
+        <div class="absence-box">
+            <h3>📅 Báo Vắng Học (Chỉ dùng khi cần chọn lùi ngày)</h3>
+            <div class="absence-grid">
+                <div class="form-group"><label>Ngày vắng</label><input type="date" id="txtDateVang"></div>
+                <div class="form-group">
+                    <label>Phân loại</label>
+                    <select id="selLoaiVang">
+                        <option value="">-- Không vắng --</option>
+                        <option value="CP">Có phép</option>
+                        <option value="KP" style="color:var(--danger); font-weight:bold;">Không phép</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Lý do (Ghi chú)</label><input type="text" id="txtLyDoVang" placeholder="VD: Bệnh, việc gia đình..."></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-submit" onclick="addLog()">💾 Cập Nhật Hồ Sơ</button>
+            <button class="btn btn-reset" onclick="resetAllData()">🗑️ Reset Lớp</button>
+        </div>
+    </div>
+
+    <div class="table-header-flex">
+        <h2 style="margin: 0; color: var(--text-main); font-weight: 900; font-size: 20px;">BẢNG ĐÁNH GIÁ TỔNG HỢP</h2>
+        <button class="btn-export-class" onclick="exportClassExcel()">📊 Xuất Báo Cáo Lớp (Excel)</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th style="text-align: left; padding-left: 20px;">Họ và Tên</th>
+                    <th title="Lỗi HT: -1đ | Thường: -2đ | Nặng: -4đ | Vắng KP: -2đ | Vắng CP (>4): -1đ">Điểm Trừ VP</th>
+                    <th title="HĐ Phong trào: +1đ | Trực phạt/Thiếu HĐ: -1đ">Điểm Phong Trào</th>
+                    <th title="Tổng điểm = Điểm Gốc - Điểm Trừ + Điểm Phong trào (Tối đa 100)">Tổng Điểm</th>
+                    <th>Cảnh Báo Nề Nếp</th>
+                    <th>Xếp Loại</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="rlTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="viewRenLuyenModal" class="modal-overlay">
+    <div class="modal-content p-modal-content">
+        <button class="close-btn" onclick="closeModal('viewRenLuyenModal')">✕</button>
+        
+        <div class="p-header">
+            <h2>📊 KẾT QUẢ RÈN LUYỆN: <span id="rl-title-name" style="color: var(--dark-orange);"></span></h2>
+        </div>
+
+        <div class="p-score-board">
+            <div class="p-score-item">
+                <label>Điểm Gốc Đầu Kì</label>
+                <span style="color: var(--text-muted);">100</span>
+            </div>
+            <div class="p-score-item">
+                <label>Tổng Lỗi Bị Trừ</label>
+                <span id="rl-score-minus" class="score-minus">0</span>
+            </div>
+            <div class="p-score-item">
+                <label>Điểm Phong Trào</label>
+                <span id="rl-score-plus" class="score-plus">0</span>
+            </div>
+            <div class="p-score-item" style="border-left: 2px dashed var(--border-color); padding-left: 25px;">
+                <label style="color: var(--info-dark);">TỔNG ĐIỂM HIỆN TẠI</label>
+                <span id="rl-score-total" style="color: var(--info-dark); font-size: 36px;">100</span>
+            </div>
+        </div>
+        
+        <div class="p-grid">
+            <div class="p-card p-card-red">
+                <h3>⚠️ VI PHẠM Nề Nếp & NGHỈ HỌC (<span id="dt-count-vp">0</span>)</h3>
+                <div id="rl-vipham" class="p-list"></div>
+            </div>
+            
+            <div class="p-card p-card-blue">
+                <h3>🏆 HOẠT ĐỘNG & PHONG TRÀO (<span id="dt-count-pt">0</span>)</h3>
+                <div id="rl-phongtrao" class="p-list"></div>
+            </div>
+        </div>
+
+        <div class="p-grid" style="margin-bottom: 0;">
+            <div class="p-card p-card-purple">
+                <h3>💡 NHẬN XÉT CỦA HỆ THỐNG</h3>
+                <div id="rl-nhanxet" class="p-content-box"></div>
+            </div>
+
+            <div class="p-card p-card-orange">
+                <label>XẾP LOẠI RÈN LUYỆN HIỆN TẠI</label>
+                <div id="rl-ketqua" style="font-size: 36px; font-weight: 900; text-transform: uppercase; margin-top: 10px;"></div>
+                <div id="rl-severe-warning" style="color:var(--danger); font-size:13px; font-weight:bold; margin-top:10px; display:none;"></div>
+            </div>
+        </div>
+
+        <div class="export-bar">
+            <button class="btn btn-export-excel" onclick="exportToExcel()">📊 Xuất File Cá Nhân (Excel)</button>
+            <button class="btn btn-export-pdf" onclick="window.print()">🖨️ In Hồ Sơ Báo Cáo (PDF)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let studentsData = [];
+    let currentDetailIndex = -1;
+
+    // --- TỪ KHÓA LỖI ---
+    const SEVERE_KEYWORDS = ['thi cử', 'thi hk1', 'thi hk2', 'kttthk', 'kthk', 'gian lận', 'đánh nhau', 'thuốc lá', 'hút thuốc', 'vô lễ', 'xúc phạm'];
+    const ACADEMIC_KEYWORDS = ['thuộc bài', 'làm bài', 'học bài', 'chuẩn bị', 'bài tập', 'tài liệu', 'dụng cụ', 'học tập', 'đề cương', 'chép bài'];
+
+    window.onload = function() {
+        document.getElementById('txtDateVang').valueAsDate = new Date();
+
+        const rawData = localStorage.getItem('DuLieu_Lop11_Master');
+        if (rawData) {
+            studentsData = JSON.parse(rawData);
+            
+            // Auto-Migration: Dọn dẹp các lỗi vắng học cũ bị phân loại nhầm vào nhóm vi phạm
+            studentsData = studentsData.map(s => {
+                if (!s.logs) s.logs = { vipham: [], phongtrao: [], vangCoPhep: [], vangKhongPhep: [] };
+                if (!s.logs.vangCoPhep) s.logs.vangCoPhep = [];
+                if (!s.logs.vangKhongPhep) s.logs.vangKhongPhep = [];
+                
+                let newVp = [];
+                s.logs.vipham.forEach(log => {
+                    let txt = log.text.trim();
+                    let upper = txt.toUpperCase();
+                    if (/^CP[\s:\-\(]/i.test(txt) || upper === 'CP') {
+                        let reason = txt.replace(/^CP[\s:\-\(]*/i, '').replace(/\)$/, '').trim() || "Không ghi chú";
+                        s.logs.vangCoPhep.push({ id: log.id, text: reason, date: log.date });
+                    } else if (/^KP[\s:\-\(]/i.test(txt) || upper === 'KP') {
+                        let reason = txt.replace(/^KP[\s:\-\(]*/i, '').replace(/\)$/, '').trim() || "Không ghi chú";
+                        s.logs.vangKhongPhep.push({ id: log.id, text: reason, date: log.date });
+                    } else {
+                        newVp.push(log);
+                    }
+                });
+                s.logs.vipham = newVp;
+                return s;
+            });
+
+            populateDropdown();
+            renderTable();
+        } else {
+            alert("Vui lòng tải danh sách lớp từ file Excel ở Trang Chủ trước!");
+            window.location.href = "index.html";
+        }
+    }
+
+    function populateDropdown() {
+        const sel = document.getElementById('selStudent');
+        sel.innerHTML = '<option value="">-- Vui lòng chọn học sinh --</option>';
+        studentsData.forEach((s, index) => {
+            sel.innerHTML += `<option value="${index}">${s["STT"] || index+1}. ${s["Họ và Tên"]}</option>`;
+        });
+    }
+
+    // ========================================================
+    // ENGINE TÍNH ĐIỂM & KHỐNG CHẾ TRẦN (CEILING + OFFSET)
+    // ========================================================
+    function calculatePoints(student) {
+        let ptCount = student.logs.phongtrao.length;
+        let cpCount = student.logs.vangCoPhep.length;
+        let kpCount = student.logs.vangKhongPhep.length;
+
+        let deductVp = 0;
+        let severeCount = 0;
+        let standardVpCount = 0;
+        let missedPtCount = 0;
+        
+        // Phân tách lỗi "Chưa hoàn thành nhiệm vụ" sang phần Phong trào
+        student.logs.vipham.forEach(log => {
+            let txt = log.text.toLowerCase();
+            if (txt.includes('chưa hoàn thành công việc được giao')) {
+                missedPtCount++;
+            } else {
+                standardVpCount++;
+                if (SEVERE_KEYWORDS.some(kw => txt.includes(kw))) {
+                    deductVp += 4;
+                    severeCount++;
+                } else if (ACADEMIC_KEYWORDS.some(kw => txt.includes(kw))) {
+                    deductVp += 1; // Lỗi học tập trừ 1đ
+                } else {
+                    deductVp += 2; // Lỗi thường trừ 2đ
+                }
+            }
+        });
+
+        // Điểm trừ nghỉ học
+        let deductKp = kpCount * 2; 
+        let deductCp = Math.max(0, cpCount - 4) * 1; 
+        let totalDeduct = deductVp + deductKp + deductCp;
+
+        // Tính "Số lượng lỗi gốc" để đưa vào Khung khống chế
+        let rawErrors = standardVpCount + kpCount + Math.max(0, cpCount - 4);
+
+        // Bù trừ: 5 HĐ -> Xóa 1 lỗi gốc. 8 HĐ -> Xóa 2 lỗi gốc
+        let errorReduced = 0;
+        if (ptCount >= 8) errorReduced = 2;
+        else if (ptCount >= 5) errorReduced = 1;
+
+        let finalErrors = Math.max(0, rawErrors - errorReduced);
+
+        // Tính điểm tổng (Hoạt động tốt: +1, Thiếu hoạt động: -1)
+        let totalBonus = (ptCount * 1) - (missedPtCount * 1); 
+        let finalScore = Math.min(100, 100 - totalDeduct + totalBonus);
+
+        // Xếp Loại: Kết hợp Điểm Số và Khung Khống Chế
+        let rank = ""; let rankClass = ""; let color = "";
+        
+        if (severeCount > 0 || finalErrors > 10 || finalScore < 70) {
+            rank = "CHƯA ĐẠT"; rankClass = "rank-chuadat"; color = "var(--danger)";
+        } else if (finalErrors >= 7 || finalScore < 89) {
+            rank = "ĐẠT"; rankClass = "rank-dat"; color = "var(--warning)";
+        } else if (finalErrors >= 3 || finalScore < 100) {
+            rank = "KHÁ"; rankClass = "rank-kha"; color = "var(--info-dark)";
+        } else {
+            rank = "TỐT"; rankClass = "rank-tot"; color = "var(--success)";
+        }
+
+        // Cảnh báo nề nếp
+        let warningHtml = ""; let warningText = "";
+        if (severeCount > 0 || finalScore < 70) {
+            warningHtml = '<span class="status-badge status-alert">🚨 Báo Động</span>'; warningText = "Báo động";
+        } else if (finalScore < 89 || rawErrors >= 3 || totalDeduct > 4) {
+            warningHtml = '<span class="status-badge status-warning">⚠️ Chú Ý</span>'; warningText = "Cần chú ý";
+        } else {
+            warningHtml = '<span class="status-badge status-safe">✔️ Ổn Định</span>'; warningText = "Tốt";
+        }
+
+        return {
+            base: 100, deduct: totalDeduct, bonus: totalBonus, total: finalScore,
+            rank: rank, rankClass: rankClass, color: color, 
+            severeCount: severeCount, rawErrors: rawErrors, errorReduced: errorReduced, finalErrors: finalErrors,
+            warningHtml: warningHtml, warningText: warningText,
+            standardVpCount: standardVpCount, missedPtCount: missedPtCount,
+            vpCount: student.logs.vipham.length, ptCount: ptCount, cpCount: cpCount, kpCount: kpCount
+        };
+    }
+
+    // TẠO NHẬN XÉT TỰ ĐỘNG
+    function generateTeacherComment(scoreObj) {
+        let klTxt = ""; let ptTxt = ""; let ccTxt = "";
+
+        if (scoreObj.severeCount > 0) {
+            klTxt = "<span style='color:var(--danger); font-weight:bold;'>Đã vi phạm lỗi nghiêm trọng. Gia đình cần quan tâm nhắc nhở em nhiều hơn.</span>";
+        } else if (scoreObj.rawErrors === 0) {
+            klTxt = "Thực hiện rất tốt nội quy của trường, lớp; có ý thức kỷ luật và tự giác cao.";
+        } else if (scoreObj.rawErrors <= 3) {
+            klTxt = "Cơ bản chấp hành nội quy, tuy nhiên đôi lúc còn vi phạm nhỏ, cần chú ý khắc phục.";
+        } else {
+            klTxt = `<span style='color:var(--danger); font-weight:bold;'>Thường xuyên vi phạm nội quy (${scoreObj.rawErrors} lỗi). Bị khống chế hạ bậc xếp loại.</span>`;
+        }
+
+        if (scoreObj.ptCount === 0 && scoreObj.missedPtCount === 0) {
+            ptTxt = "Chưa tích cực tham gia các phong trào chung. Cần chú ý vì phong trào giúp cải thiện kết quả rèn luyện.";
+        } else {
+            let posTxt = "";
+            if (scoreObj.ptCount >= 5) posTxt = `<span style='color:var(--info-dark); font-weight:bold;'>Năng nổ, nhiệt tình tham gia HĐ (${scoreObj.ptCount} lần). Đã được hệ thống ghi nhận, có thể dùng để xem xét xóa ${scoreObj.errorReduced} lỗi vi phạm theo quy định.</span>`;
+            else if (scoreObj.ptCount > 0) posTxt = `Có tham gia phong trào, hoạt động của lớp (${scoreObj.ptCount} lần).`;
+            
+            let negTxt = "";
+            if (scoreObj.missedPtCount > 0) negTxt = `<span style='color:var(--danger); font-weight:bold;'>Tuy nhiên, em còn thiếu trách nhiệm, chưa hoàn thành ${scoreObj.missedPtCount} nhiệm vụ được phân công.</span>`;
+            
+            ptTxt = posTxt + (posTxt && negTxt ? " " : "") + negTxt;
+            if (!posTxt && negTxt) ptTxt = negTxt + " Cần nghiêm túc chấn chỉnh lại thái độ tham gia hoạt động tập thể.";
+        }
+
+        const totalAbs = scoreObj.cpCount + scoreObj.kpCount;
+        if (totalAbs === 0) ccTxt = "Đảm bảo chuyên cần, đi học đầy đủ.";
+        else if (scoreObj.kpCount > 0) ccTxt = `<span style='color:var(--danger); font-weight:bold;'>Đi học chưa chuyên cần, còn vắng không phép ${scoreObj.kpCount} buổi.</span>`;
+        else if (scoreObj.cpCount > 4) ccTxt = `<span style='color:var(--warning); font-weight:bold;'>Nghỉ học có phép khá nhiều (${scoreObj.cpCount} buổi) làm ảnh hưởng kết quả rèn luyện.</span>`;
+        else ccTxt = `Đi học cơ bản đầy đủ, có vắng ${scoreObj.cpCount} buổi.`;
+
+        return `
+            <p style="margin:0 0 8px 0;"><strong>• Về kỷ luật:</strong> ${klTxt}</p>
+            <p style="margin:0 0 8px 0;"><strong>• Về chuyên cần:</strong> ${ccTxt}</p>
+            <p style="margin:0;"><strong>• Về phong trào:</strong> ${ptTxt}</p>
+        `;
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('rlTableBody');
+        tbody.innerHTML = studentsData.map((s, index) => {
+            const sc = calculatePoints(s);
+            const bonusStr = sc.bonus > 0 ? `+${sc.bonus}` : sc.bonus;
+            const bonusColor = sc.bonus > 0 ? 'var(--info-dark)' : (sc.bonus < 0 ? 'var(--danger)' : 'var(--text-muted)');
+
+            return `
+                <tr>
+                    <td style="font-weight:900; color:var(--info-dark);">${s['STT'] || index + 1}</td>
+                    <td style="text-align: left; padding-left: 20px;"><strong>${s["Họ và Tên"]}</strong></td>
+                    <td><span class="score-badge score-minus">-${sc.deduct}</span></td>
+                    <td><span class="score-badge" style="color:${bonusColor}">${bonusStr}</span></td>
+                    <td><span class="score-badge score-total">${sc.total}</span></td>
+                    <td>${sc.warningHtml}</td>
+                    <td class="${sc.rankClass}">${sc.rank}</td>
+                    <td>
+                        <button class="btn-detail" onclick="openDetail(${index})">🔍 Hồ Sơ Chi Tiết</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function addLog() {
+        const idx = document.getElementById('selStudent').value;
+        if (idx === "") { alert("Vui lòng chọn học sinh!"); return; }
+
+        const vpRaw = document.getElementById('txtViPham').value;
+        const ptRaw = document.getElementById('txtPhongTrao').value;
+        const dateVangInput = document.getElementById('txtDateVang').value;
+        const loaiVang = document.getElementById('selLoaiVang').value;
+        const lyDoVang = document.getElementById('txtLyDoVang').value || "Không ghi chú";
+
+        if (!vpRaw.trim() && !ptRaw.trim() && !loaiVang) {
+            alert("Vui lòng nhập ít nhất một dữ liệu (Lỗi, Phong trào, hoặc Vắng học)!");
+            return;
+        }
+
+        const now = new Date().toLocaleDateString('vi-VN');
+
+        if (vpRaw.trim()) {
+            const vpArray = vpRaw.split(/[,;]+/).map(i => i.trim()).filter(i => i !== "");
+            vpArray.forEach(text => { 
+                const upperText = text.toUpperCase();
+                // Phân tích đầu vào thông minh
+                if (/^CP[\s:\-\(]/i.test(text) || upperText === 'CP') {
+                    let reason = text.replace(/^CP[\s:\-\(]*/i, '').replace(/\)$/, '').trim() || "Không ghi chú";
+                    studentsData[idx].logs.vangCoPhep.push({ id: Date.now() + Math.random(), text: reason, date: now });
+                } else if (/^KP[\s:\-\(]/i.test(text) || upperText === 'KP') {
+                    let reason = text.replace(/^KP[\s:\-\(]*/i, '').replace(/\)$/, '').trim() || "Không ghi chú";
+                    studentsData[idx].logs.vangKhongPhep.push({ id: Date.now() + Math.random(), text: reason, date: now });
+                } else {
+                    studentsData[idx].logs.vipham.push({ id: Date.now() + Math.random(), text: text, date: now }); 
+                }
+            });
+        }
+
+        if (ptRaw.trim()) {
+            const ptArray = ptRaw.split(/[,;]+/).map(i => i.trim()).filter(i => i !== "");
+            ptArray.forEach(text => { studentsData[idx].logs.phongtrao.push({ id: Date.now() + Math.random(), text: text, date: now }); });
+        }
+
+        if (loaiVang) {
+            const dateStr = dateVangInput ? new Date(dateVangInput).toLocaleDateString('vi-VN') : now;
+            const logEntry = { id: Date.now() + Math.random(), text: lyDoVang, date: dateStr };
+            if (loaiVang === 'CP') studentsData[idx].logs.vangCoPhep.push(logEntry);
+            else if (loaiVang === 'KP') studentsData[idx].logs.vangKhongPhep.push(logEntry);
+        }
+
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+        
+        document.getElementById('txtViPham').value = "";
+        document.getElementById('txtPhongTrao').value = "";
+        document.getElementById('selLoaiVang').value = "";
+        document.getElementById('txtLyDoVang').value = "";
+        
+        renderTable();
+        document.getElementById('selStudent').focus();
+    }
+
+    function openDetail(index) {
+        currentDetailIndex = index;
+        const s = studentsData[index];
+        document.getElementById('rl-title-name').innerText = s["Họ và Tên"];
+        renderLogLists(s);
+        document.getElementById('viewRenLuyenModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+        currentDetailIndex = -1;
+    }
+
+    function renderLogLists(student) {
+        const sc = calculatePoints(student);
+        
+        // Cập nhật số lượng
+        document.getElementById('dt-count-vp').innerText = sc.standardVpCount + sc.kpCount + sc.cpCount;
+        
+        let ptSummaryStr = sc.ptCount;
+        if(sc.missedPtCount > 0) ptSummaryStr += ` (Thiếu ${sc.missedPtCount})`;
+        document.getElementById('dt-count-pt').innerText = ptSummaryStr;
+
+        document.getElementById('rl-score-minus').innerText = `-${sc.deduct}`;
+        const bonusStr = sc.bonus > 0 ? `+${sc.bonus}` : sc.bonus;
+        document.getElementById('rl-score-plus').innerText = bonusStr;
+        document.getElementById('rl-score-plus').style.color = sc.bonus > 0 ? 'var(--info-dark)' : (sc.bonus < 0 ? 'var(--danger)' : 'var(--text-muted)');
+        document.getElementById('rl-score-total').innerText = sc.total;
+
+        const xlBox = document.getElementById('rl-ketqua');
+        xlBox.innerText = sc.rank;
+        xlBox.style.color = sc.color;
+
+        const warnText = document.getElementById('rl-severe-warning');
+        if (sc.severeCount > 0) {
+            warnText.innerText = "(Bị khống chế hạ bậc do dính Lỗi Nghiêm Trọng)";
+            warnText.style.display = 'block';
+        } else if (sc.total >= 89 && sc.rank !== "TỐT" && sc.rank !== "KHÁ") {
+            warnText.innerText = `(Bị khống chế hạ bậc do có quá nhiều lỗi vi phạm: ${sc.rawErrors} lỗi gốc)`;
+            warnText.style.display = 'block';
+        } else {
+            warnText.style.display = 'none';
+        }
+
+        document.getElementById('rl-nhanxet').innerHTML = generateTeacherComment(sc);
+
+        // Render Danh sách Vi Phạm (Không bao gồm Chưa hoàn thành HĐ)
+        const standardVpLogs = student.logs.vipham.filter(log => !log.text.toLowerCase().includes('chưa hoàn thành công việc được giao'));
+        const vpList = document.getElementById('rl-vipham');
+        let vpHTML = "";
+        
+        if (sc.standardVpCount > 0) {
+            vpHTML += standardVpLogs.map(log => {
+                let txt = log.text.toLowerCase();
+                let isSevere = SEVERE_KEYWORDS.some(kw => txt.includes(kw));
+                let isAcademic = !isSevere && ACADEMIC_KEYWORDS.some(kw => txt.includes(kw));
+                
+                let iconStr = isSevere ? '<span class="p-icon-check" style="color:var(--danger); font-size:18px;">🔥</span>' : (isAcademic ? '<span class="p-icon-check" style="color:var(--warning); font-size:16px;">📚</span>' : '<span class="p-icon-check" style="color:var(--danger);">⚠️</span>');
+                let ptDeduct = isSevere ? '(-4đ)' : (isAcademic ? '(-1đ)' : '(-2đ)');
+                return `
+                <div class="p-list-item">
+                    <div class="p-list-content">${iconStr} <div>${log.text} <b style="color:var(--danger)">${ptDeduct}</b><span>(${log.date})</span></div></div>
+                    <button class="btn-del-item" onclick="deleteLog('vipham', ${log.id})" title="Xóa dữ liệu">✕</button>
+                </div>
+                `;
+            }).join('');
+        }
+        if (sc.kpCount > 0) {
+            vpHTML += student.logs.vangKhongPhep.map(log => `
+                <div class="p-list-item">
+                    <div class="p-list-content"><span class="p-icon-check" style="color:var(--danger);">🚨</span> <div><b>Nghỉ KHÔNG phép</b>: ${log.text} <b style="color:var(--danger)">(-2đ)</b><span>(${log.date})</span></div></div>
+                    <button class="btn-del-item" onclick="deleteLog('vangKhongPhep', ${log.id})" title="Xóa dữ liệu">✕</button>
+                </div>
+            `).join('');
+        }
+        if (sc.cpCount > 0) {
+            vpHTML += student.logs.vangCoPhep.map((log, i) => {
+                let ptDeduct = (i >= 4) ? '<b style="color:var(--danger)">(-1đ)</b>' : '<b style="color:var(--success)">(Không trừ)</b>';
+                return `
+                <div class="p-list-item">
+                    <div class="p-list-content"><span class="p-icon-check" style="color:var(--warning);">📅</span> <div><b>Nghỉ Có phép</b>: ${log.text} ${ptDeduct}<span>(${log.date})</span></div></div>
+                    <button class="btn-del-item" onclick="deleteLog('vangCoPhep', ${log.id})" title="Xóa dữ liệu">✕</button>
+                </div>
+                `;
+            }).join('');
+        }
+
+        vpList.innerHTML = vpHTML === "" 
+            ? `<div class="p-list-item" style="background:transparent; border-bottom: none;"><div class="p-list-content"><span class="p-icon-check" style="color:var(--success);">✔️</span> <div style="color:var(--success);">Chưa ghi nhận vi phạm nề nếp nào, đáng khen!</div></div></div>` 
+            : vpHTML;
+
+        // Render Danh sách Phong Trào (Bao gồm Chưa hoàn thành HĐ)
+        const ptList = document.getElementById('rl-phongtrao');
+        const missedPtLogs = student.logs.vipham.filter(log => log.text.toLowerCase().includes('chưa hoàn thành công việc được giao'));
+        let ptHTML = "";
+        
+        if (sc.ptCount > 0) {
+            ptHTML += student.logs.phongtrao.map(log => `
+                <div class="p-list-item">
+                    <div class="p-list-content"><span class="p-icon-check" style="color:var(--info-dark);">🏆</span> <div>${log.text} <b style="color:var(--info-dark);">(+1đ)</b><span>(${log.date})</span></div></div>
+                    <button class="btn-del-item" onclick="deleteLog('phongtrao', ${log.id})" title="Xóa dữ liệu">✕</button>
+                </div>
+            `).join('');
+        }
+        
+        if (sc.missedPtCount > 0) {
+            ptHTML += missedPtLogs.map(log => `
+                <div class="p-list-item" style="background: #fef2f2; border: 1px dashed #fecaca; margin-bottom: 5px;">
+                    <div class="p-list-content"><span class="p-icon-check" style="color:var(--danger);">❌</span> <div>${log.text} <b style="color:var(--danger);">(-1đ)</b><span>(${log.date})</span></div></div>
+                    <button class="btn-del-item" onclick="deleteLog('vipham', ${log.id})" title="Xóa dữ liệu">✕</button>
+                </div>
+            `).join('');
+        }
+        
+        ptList.innerHTML = ptHTML === ""
+            ? `<div class="p-list-item" style="background:transparent; border-bottom: none;"><div class="p-list-content"><span class="p-icon-check" style="color:var(--text-muted);">-</span> <div style="color:var(--text-muted); font-style:italic;">Chưa tham gia hoạt động nào! Cần tích cực hơn nữa.</div></div></div>`
+            : ptHTML;
+    }
+
+    function deleteLog(type, id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa dữ liệu này khỏi hồ sơ học sinh?")) return;
+        const s = studentsData[currentDetailIndex];
+        s.logs[type] = s.logs[type].filter(log => log.id !== id);
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+        renderLogLists(s); 
+        renderTable();     
+    }
+
+    function resetAllData() {
+        if(confirm("⚠️ CẢNH BÁO: Hành động này sẽ XÓA TOÀN BỘ lịch sử vi phạm, phong trào và điểm danh của TẤT CẢ học sinh. Bạn có chắc chắn?")) {
+            const doubleCheck = prompt("Nhập chữ 'XOA' để xác nhận thực hiện:");
+            if (doubleCheck === 'XOA') {
+                studentsData = studentsData.map(s => {
+                    s.logs = { vipham: [], phongtrao: [], vangCoPhep: [], vangKhongPhep: [] };
+                    return s;
+                });
+                localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+                renderTable();
+                alert("Đã reset sổ theo dõi thành công!");
+            }
+        }
+    }
+
+    function exportToExcel() {
+        if (currentDetailIndex === -1) return;
+        const s = studentsData[currentDetailIndex];
+        
+        let standardVpLogs = s.logs.vipham.filter(log => !log.text.toLowerCase().includes('chưa hoàn thành công việc được giao'));
+        let missedPtLogs = s.logs.vipham.filter(log => log.text.toLowerCase().includes('chưa hoàn thành công việc được giao'));
+        let ptCombined = [...s.logs.phongtrao.map(x=> `(+) ${x.text.replace(/<[^>]*>?/gm, '')} - ${x.date}`), ...missedPtLogs.map(x=> `(-) ${x.text} - ${x.date}`)];
+        let mergedAbsences = [...s.logs.vangCoPhep.map(x=>`(Có Phép) ${x.text} - ${x.date}`), ...s.logs.vangKhongPhep.map(x=>`(KHÔNG PHÉP) ${x.text} - ${x.date}`)];
+
+        const maxLen = Math.max(standardVpLogs.length, ptCombined.length, mergedAbsences.length);
+        let excelData = [];
+        
+        for(let i=0; i<maxLen; i++) {
+            excelData.push({
+                "STT": i + 1,
+                "Lịch Sử Vi Phạm Nề Nếp": standardVpLogs[i] ? `${standardVpLogs[i].text} (${standardVpLogs[i].date})` : "",
+                "Hoạt Động Phong Trào (Thừa / Thiếu)": ptCombined[i] || "",
+                "Lịch Sử Nghỉ Học": mergedAbsences[i] || ""
+            });
+        }
+        
+        if (excelData.length === 0) { alert("Học sinh này chưa có dữ liệu để xuất!"); return; }
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        ws['!cols'] = [{wch: 5}, {wch: 45}, {wch: 45}, {wch: 45}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "ChiTiet");
+        const safeName = s["Họ và Tên"].replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, "_");
+        XLSX.writeFile(wb, `Ca_Nhan_Ren_Luyen_${safeName}.xlsx`);
+    }
+
+    function exportClassExcel() {
+        if (studentsData.length === 0) { alert("Chưa có dữ liệu lớp học."); return; }
+
+        let exportData = studentsData.map((s, index) => {
+            const sc = calculatePoints(s);
+            const bonusStr = sc.bonus > 0 ? `+${sc.bonus}` : sc.bonus;
+            
+            return {
+                "STT": s["STT"] || index + 1,
+                "Họ và Tên": s["Họ và Tên"],
+                "Giới Tính": s["Giới Tính"] || "",
+                "Số Lỗi Gốc": sc.rawErrors,
+                "Lỗi Đã Xóa Bù Trừ": sc.errorReduced,
+                "Điểm Trừ Vi Phạm": `-${sc.deduct}`,
+                "Điểm Phong Trào": bonusStr,
+                "Tổng Điểm Cuối": sc.total,
+                "Tình Trạng Nề Nếp": sc.warningText,
+                "Xếp Loại Rèn Luyện": sc.rank
+            };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        ws['!cols'] = [{wch: 5}, {wch: 25}, {wch: 10}, {wch: 12}, {wch: 18}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}, {wch: 20}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "BaoCaoLop");
+        const nowStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, "-");
+        XLSX.writeFile(wb, `Bao_Cao_Diem_Ren_Luyen_Lop_${nowStr}.xlsx`);
+    }
+</script>
+</body>
+</html>

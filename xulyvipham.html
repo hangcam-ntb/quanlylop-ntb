@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xử Lý Kỷ Luật - GVCN Cam Bích Hằng</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Bộ font Inter: Hiện đại, thanh lịch và tối ưu cho tiếng Việt -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary-orange: #f97316; --dark-orange: #ea580c; --light-orange: #fff7ed;
+            --info: #0ea5e9; --info-dark: #0284c7; --info-light: #e0f2fe;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --purple: #8b5cf6;
+            --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+            --bg-body: #f8fafc; --card-bg: #ffffff;
+        }
+
+        /* Ép đồng bộ Font chữ cho toàn bộ thành phần */
+        body, input, select, button, textarea { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            color: var(--text-main); 
+        }
+
+        body { 
+            background-color: var(--bg-body); 
+            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); 
+            background-size: 30px 30px; 
+            margin: 0; 
+            line-height: 1.5; 
+        }
+        
+        .header { background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange)); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 10px 30px rgba(234, 88, 12, 0.2); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 40px; position: relative;}
+        .header h1 { margin: 0 0 5px 0; font-weight: 900; font-size: 1.9em; text-transform: uppercase; letter-spacing: 0.5px;}
+        .btn-back { position: absolute; left: 30px; top: 25px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;}
+        .btn-back:hover { background: white; color: var(--dark-orange); box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+
+        .container { max-width: 1250px; margin: 0 auto 50px auto; background: rgba(255, 255, 255, 0.98); padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        
+        /* Dashboard Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 35px; }
+        .stat-card { background: white; padding: 25px; border-radius: 16px; border: 1px solid var(--border-color); border-top: 5px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s;}
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05);}
+        .stat-card.pending { border-top-color: var(--danger); background: #fef2f2;}
+        .stat-card.done { border-top-color: var(--success); background: #f0fdf4;}
+        .stat-card.neutral { border-top-color: var(--info-dark); background: #f0f9ff;}
+        .stat-card h3 { margin: 0; font-size: 14px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;}
+        .stat-card .num { font-size: 38px; font-weight: 900; margin-top: 8px; line-height: 1; }
+        .stat-card.pending .num { color: var(--danger); }
+        .stat-card.done .num { color: #059669; }
+        .stat-card.neutral .num { color: var(--info-dark); }
+
+        /* Controls */
+        .controls { display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center; flex-wrap: wrap; gap: 15px;}
+        .filter-group { display: flex; gap: 10px; background: #f1f5f9; padding: 6px; border-radius: 14px;}
+        .btn-filter { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-weight: 700; font-size: 14px; transition: 0.2s;}
+        .btn-filter:hover { color: var(--text-main); }
+        .btn-filter.active { background: white; color: var(--info-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.08);}
+        
+        .quick-add-group select { padding: 12px 20px; border-radius: 12px; border: 2px dashed var(--info-dark); background: #f0f9ff; font-weight: 700; font-size: 14px; color: var(--info-dark); outline: none; cursor: pointer; min-width: 320px; transition: 0.3s;}
+        .quick-add-group select:focus { border-style: solid; box-shadow: 0 0 0 4px var(--info-light);}
+
+        .btn-export { background: linear-gradient(135deg, var(--success), #059669); padding: 12px 24px; border-radius: 12px; color: white; border: none; font-size: 14px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(16,185,129,0.2); transition: 0.3s;}
+        .btn-export:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(16,185,129,0.3);}
+        
+        /* Table */
+        .table-container { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
+        th { background: #f1f5f9; color: var(--text-main); padding: 16px 12px; font-weight: 900; text-transform: uppercase; font-size: 13px; white-space: nowrap; border-bottom: 2px solid var(--border-color); text-align: center;}
+        td { padding: 15px 12px; border-bottom: 1px solid var(--border-color); text-align: center; font-size: 14.5px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f8fafc; }
+
+        .tag { padding: 6px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-block; margin: 3px;}
+        .tag.pending { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .tag.done { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;}
+
+        .btn-process { background: var(--info-light); color: var(--info-dark); padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 800; border: 1px solid #bae6fd; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+        .btn-process:hover { background: var(--info); color: white; border-color: var(--info); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(14,165,233,0.2);}
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: 0.3s;}
+        .modal-overlay.active { display: flex; opacity: 1;}
+        .modal-content { background: var(--card-bg); border-radius: 20px; padding: 35px; position: relative; width: 950px; max-width: 95%; max-height: 90vh; overflow-y: auto; margin: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.95); transition: 0.3s; border-top: 6px solid var(--info-dark);}
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .close-btn { position: absolute; top: 25px; right: 25px; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; color: var(--text-muted); border: none; background: #f1f5f9; transition: 0.2s; font-weight: bold; z-index: 10; display:flex; align-items:center; justify-content:center;}
+        .close-btn:hover { background: var(--danger-light); color: var(--danger); transform: rotate(90deg); }
+        .modal-header h2 { margin: 0 0 25px 0; color: var(--info-dark); text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; font-weight: 900; text-transform: uppercase;}
+
+        /* Action Item (Khối xử lý) */
+        .action-item { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: start; border-left: 6px solid #CCC; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .action-item.pending { border-left-color: #fca5a5; background: #fef2f2; border-color: #fecaca;}
+        .action-item.done { border-left-color: #6ee7b7; background: #f0fdf4; border-color: #a7f3d0;}
+        .action-item.severe { border-left-color: #d8b4fe; background: #faf5ff; border-color: #e9d5ff; } 
+        
+        .action-info h4 { margin: 0 0 8px 0; color: var(--text-main); font-size: 16px; font-weight: 800;}
+        .action-info p { margin: 0 0 12px 0; color: var(--text-muted); font-size: 14px; font-style: italic;}
+        
+        .action-form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: rgba(255,255,255,0.6); padding: 12px; border-radius: 10px;}
+        .action-form label { font-size: 13px; font-weight: 700; color: var(--text-main);}
+        .action-form input[type="date"], .action-form input[type="text"] { padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s;}
+        .action-form input[type="date"]:focus, .action-form input[type="text"]:focus { border-color: var(--info); box-shadow: 0 0 0 3px var(--info-light);}
+        .action-form input[type="text"] { flex-grow: 1; min-width: 250px;}
+        
+        .btn-save-action { background: var(--success); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 800; transition: 0.2s; flex-grow: 1;}
+        .btn-save-action:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(16,185,129,0.2);}
+        
+        .btn-undo-action { background: #f1f5f9; color: var(--text-main); border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-grow: 1; font-weight: 700; transition: 0.2s;}
+        .btn-undo-action:hover { background: #e2e8f0; }
+
+        .btn-delete-action { background: white; color: var(--danger); border: 1px solid #fecaca; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition: 0.2s; width: 100%;}
+        .btn-delete-action:hover { background: var(--danger-light); border-color: var(--danger); }
+        
+        .status-text { font-weight: 900; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; text-transform: uppercase;}
+        .status-text.pending { color: var(--danger); }
+        .status-text.done { color: #059669; }
+
+        /* Khung Thêm Xử Lý Thủ Công Mới */
+        .add-manual { margin-top: 30px; padding-top: 25px; border-top: 2px dashed var(--border-color); background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid var(--border-color);}
+        .add-manual h3 { margin: 0 0 15px 0; font-size: 15px; font-weight: 900; color: var(--info-dark); display: flex; align-items: center; gap: 8px; text-transform: uppercase;}
+        .add-form { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .add-form select, .add-form input { padding: 12px 15px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; outline: none; transition: 0.2s;}
+        .add-form select:focus, .add-form input:focus { border-color: var(--info); box-shadow: 0 0 0 3px var(--info-light);}
+        .btn-add { background: var(--info-dark); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 800; white-space: nowrap; transition: 0.2s; box-shadow: 0 4px 6px rgba(2, 132, 199, 0.2);}
+        .btn-add:hover { background: #0369a1; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="btn-back">⬅ Quay Lại Trang Chủ</a>
+    <h1>QUẢN LÝ QUY TRÌNH KỶ LUẬT</h1>
+</div>
+
+<div class="container">
+    
+    <div class="stats-grid">
+        <div class="stat-card pending">
+            <h3>Cần Xử Lý Gấp</h3>
+            <div class="num" id="stat-pending">0</div>
+        </div>
+        <div class="stat-card done">
+            <h3>Đã Xử Lý Xong</h3>
+            <div class="num" id="stat-done">0</div>
+        </div>
+        <div class="stat-card neutral">
+            <h3>Tổng Học Sinh Nằm Trong Diện</h3>
+            <div class="num" id="stat-total">0</div>
+        </div>
+    </div>
+
+    <!-- THANH CÔNG CỤ -->
+    <div class="controls">
+        <div class="filter-group">
+            <button class="btn-filter active" onclick="setFilter('all')">Tất cả</button>
+            <button class="btn-filter" onclick="setFilter('pending')">🔴 Đang chờ xử lý</button>
+            <button class="btn-filter" onclick="setFilter('done')">🟢 Đã hoàn tất</button>
+        </div>
+        
+        <div class="quick-add-group">
+            <select id="selAllStudents" onchange="quickOpenModal()">
+                <option value="">➕ Chọn HS ngoài danh sách để thêm xử lý...</option>
+                <!-- Dữ liệu được đổ tự động -->
+            </select>
+        </div>
+
+        <button class="btn-export" onclick="exportActions()">📊 Xuất Báo Cáo Xử Lý</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th style="text-align: left; padding-left: 20px;">Họ và Tên</th>
+                    <th>Nguồn Gốc Lỗi</th>
+                    <th style="width: 35%;">Tiến Trình Xử Lý Kỷ Luật</th>
+                    <th style="width: 150px;">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody id="actionTableBody">
+                <!-- Nội dung render ngầm -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL CẬP NHẬT TRẠNG THÁI -->
+<div id="actionModal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()">✕</button>
+        <div class="modal-header">
+            <h2>HỒ SƠ XỬ LÝ: <span id="dt-name" style="color: var(--dark-orange);"></span></h2>
+        </div>
+        
+        <div id="action-list">
+            <!-- Render danh sách việc cần xử lý của HS này -->
+        </div>
+
+        <div class="add-manual">
+            <h3>➕ Đề Xuất Xử Lý Kỷ Luật Mới (Thủ Công)</h3>
+            <div class="add-form">
+                <select id="selManualActionType" onchange="toggleManualInput()" style="width: 280px;">
+                    <option value="Viết bản kiểm điểm">Viết bản kiểm điểm</option>
+                    <option value="Mời Phụ huynh (Trực tiếp)">Mời Phụ huynh (Trực tiếp)</option>
+                    <option value="Liên hệ Phụ huynh (Điện thoại)">Liên hệ Phụ huynh (Điện thoại)</option>
+                    <option value="Trực lớp">Trực vệ sinh lớp</option>
+                    <option value="Kiểm điểm trước lớp">Kiểm điểm trước lớp</option>
+                    <option value="Cảnh cáo/Hạ hạnh kiểm">Cảnh cáo/Hạ hạnh kiểm</option>
+                    <option value="other">Khác (Tự nhập chi tiết)...</option>
+                </select>
+                
+                <input type="text" id="txtManualAction" placeholder="Nhập nguyên nhân (VD: Vô lễ với giáo viên...)" style="flex-grow:1;">
+                
+                <button class="btn-add" onclick="addManualAction()">Thêm Vào Hồ Sơ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let studentsData = [];
+    let currentFilter = 'all';
+    let currentStudentIndex = -1;
+
+    const KW_TRE = ['trễ', 'muộn'];
+    const KW_HOCTAP = ['thuộc bài', 'làm bài', 'học bài', 'chuẩn bị bài', 'bài tập', 'tài liệu', 'dụng cụ'];
+    const KW_THI = ['hk1', 'hk2', 'ghk1', 'ghk2', 'kiểm tra'];
+
+    window.onload = function() {
+        const rawData = localStorage.getItem('DuLieu_Lop11_Master');
+        if (rawData) {
+            studentsData = JSON.parse(rawData);
+            
+            studentsData = studentsData.map(s => {
+                if (!s.logs) s.logs = { vipham: [], phongtrao: [], vangCoPhep: [], vangKhongPhep: [] };
+                if (!s.logs.vangCoPhep) s.logs.vangCoPhep = [];
+                if (!s.logs.vangKhongPhep) s.logs.vangKhongPhep = [];
+                if (!s.logs.xuly) s.logs.xuly = [];
+                return s;
+            });
+
+            syncAutoSuggestions();
+            populateAllStudentsDropdown();
+            renderTable();
+            updateStats();
+        } else {
+            alert("Vui lòng tải danh sách lớp từ file Excel ở Trang Chủ trước!");
+            window.location.href = "index.html";
+        }
+    }
+
+    function populateAllStudentsDropdown() {
+        const sel = document.getElementById('selAllStudents');
+        sel.innerHTML = '<option value="">➕ Chọn HS ngoài danh sách để thêm xử lý...</option>';
+        studentsData.forEach((s, index) => {
+            sel.innerHTML += `<option value="${index}">${s["STT"] || index+1}. ${s["Họ và Tên"]}</option>`;
+        });
+    }
+
+    function quickOpenModal() {
+        const sel = document.getElementById('selAllStudents');
+        if (sel.value !== "") {
+            openActionModal(parseInt(sel.value));
+            sel.value = ""; 
+        }
+    }
+
+    // --- ĐỘNG CƠ TỰ ĐỘNG PHÁT HIỆN LỖI ---
+    function syncAutoSuggestions() {
+        studentsData.forEach(s => {
+            const vpLogs = s.logs.vipham;
+            const totalAbs = s.logs.vangCoPhep.length + s.logs.vangKhongPhep.length;
+            
+            const countByKW = (kwArray) => vpLogs.filter(log => kwArray.some(kw => log.text.toLowerCase().includes(kw))).length;
+            
+            const treCount = countByKW(KW_TRE);
+            const hocCount = countByKW(KW_HOCTAP);
+            const thiCount = countByKW(KW_THI);
+
+            const triggerAction = (code, title, reason, severity = 'normal') => {
+                const exists = s.logs.xuly.some(act => act.code === code);
+                if (!exists) {
+                    s.logs.xuly.push({
+                        id: Date.now() + Math.random(),
+                        code: code,
+                        title: title,
+                        reason: reason,
+                        severity: severity,
+                        status: 'pending',
+                        dateResolved: '',
+                        note: ''
+                    });
+                }
+            };
+
+            if (totalAbs > 5) triggerAction('ABS_5', 'Liên hệ Phụ Huynh', `Đã nghỉ tổng cộng ${totalAbs} buổi học`);
+            if (treCount > 2) triggerAction('TRE_2', 'Mời Phụ huynh (Trực tiếp)', `Đã đi trễ/muộn ${treCount} lần`);
+            if (hocCount >= 2) triggerAction('HOC_2', 'Viết bản kiểm điểm', `Vi phạm quy chế học tập ${hocCount} lần`);
+            if (thiCount > 0) triggerAction('THI_1', 'Mời Phụ huynh (Vi phạm thi cử)', `Vi phạm kỷ luật nặng trong giờ kiểm tra/thi (${thiCount} lần)`, 'severe');
+        });
+
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+    }
+
+    // --- HIỂN THỊ GIAO DIỆN ---
+    function setFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderTable();
+    }
+
+    function updateStats() {
+        let pending = 0, done = 0, totalStudentsInvolved = 0;
+
+        studentsData.forEach(s => {
+            if (s.logs.xuly.length > 0) totalStudentsInvolved++;
+            s.logs.xuly.forEach(act => {
+                if (act.status === 'pending') pending++;
+                else if (act.status === 'done') done++;
+            });
+        });
+
+        document.getElementById('stat-pending').innerText = pending;
+        document.getElementById('stat-done').innerText = done;
+        document.getElementById('stat-total').innerText = totalStudentsInvolved;
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('actionTableBody');
+        let html = '';
+
+        studentsData.forEach((s, index) => {
+            if (!s.logs.xuly || s.logs.xuly.length === 0) return; 
+
+            const pendingActions = s.logs.xuly.filter(a => a.status === 'pending');
+            const doneActions = s.logs.xuly.filter(a => a.status === 'done');
+
+            if (currentFilter === 'pending' && pendingActions.length === 0) return;
+            if (currentFilter === 'done' && doneActions.length === 0) return;
+
+            let tagHTML = '';
+            s.logs.xuly.forEach(act => {
+                if (act.status === 'pending') {
+                    tagHTML += `<span class="tag pending">⚠️ ${act.title}</span>`;
+                } else {
+                    if (currentFilter === 'all' || currentFilter === 'done') {
+                        tagHTML += `<span class="tag done">✔️ ${act.title}</span>`;
+                    }
+                }
+            });
+
+            if(tagHTML === '') return;
+
+            html += `
+                <tr>
+                    <td style="font-weight:900; color:var(--info-dark);">${s['STT'] || index + 1}</td>
+                    <td style="text-align: left; padding-left: 20px;"><strong>${s["Họ và Tên"]}</strong></td>
+                    <td style="font-size: 13.5px; color: var(--text-muted); text-align: left; line-height: 1.6;">
+                        - Tổng VP Nề nếp: <b style="color:var(--text-main);">${s.logs.vipham.length}</b><br>
+                        - Vắng học: <b style="color:var(--text-main);">${s.logs.vangCoPhep.length + s.logs.vangKhongPhep.length}</b> buổi
+                    </td>
+                    <td style="text-align: left; line-height: 1.8;">${tagHTML}</td>
+                    <td>
+                        <button class="btn-process" onclick="openActionModal(${index})">⚙️ Mở Hồ Sơ</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        if (html === '') {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="padding: 40px; color:var(--text-muted); font-style:italic; text-align:center;">Danh sách lọc trống. Vui lòng chọn [Tất cả] hoặc dùng thanh công cụ phía trên để thêm hồ sơ xử lý mới.</td></tr>`;
+        } else {
+            tbody.innerHTML = html;
+        }
+    }
+
+    // --- MODAL XỬ LÝ ---
+    function openActionModal(index) {
+        currentStudentIndex = index;
+        document.getElementById('dt-name').innerText = studentsData[index]["Họ và Tên"];
+        renderActionList();
+        document.getElementById('actionModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('actionModal').classList.remove('active');
+        currentStudentIndex = -1;
+    }
+
+    function renderActionList() {
+        const s = studentsData[currentStudentIndex];
+        const container = document.getElementById('action-list');
+        
+        if (s.logs.xuly.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted); font-style:italic; text-align:center; padding: 20px;">Học sinh này hiện chưa có vi phạm nào cần xử lý. Bạn có thể chủ động thêm yêu cầu thủ công bên dưới.</p>';
+            return;
+        }
+
+        container.innerHTML = s.logs.xuly.map(act => {
+            const classSeverity = act.severity === 'severe' && act.status === 'pending' ? 'action-item pending severe' : (act.status === 'pending' ? 'action-item pending' : 'action-item done');
+            
+            // Xử lý thông minh lỗi "Invalid Date"
+            let formattedDate = act.dateResolved;
+            if (formattedDate && formattedDate.includes('-')) {
+                const parts = formattedDate.split('-');
+                if(parts.length === 3) formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+
+            if (act.status === 'pending') {
+                const today = new Date().toISOString().split('T')[0];
+                return `
+                    <div class="${classSeverity}">
+                        <div class="action-info">
+                            <h4>⚠️ Yêu cầu: ${act.title} ${act.severity === 'severe' ? '<span style="color:var(--danger); font-size:13px; padding:2px 8px; background:#fecaca; border-radius:10px; margin-left:5px;">LỖI NẶNG</span>' : ''}</h4>
+                            <p>Lý do: ${act.reason}</p>
+                            <div class="action-form">
+                                <label>Ngày xong:</label>
+                                <input type="date" id="date_${act.id}" value="${today}">
+                                <input type="text" id="note_${act.id}" placeholder="Kết quả thực hiện (VD: PH cam kết, Đã nộp bản KĐ...)">
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:8px; min-width: 120px;">
+                            <button class="btn-save-action" onclick="resolveAction(${act.id})">✅ Chốt Xong</button>
+                            <button class="btn-delete-action" onclick="deleteAction(${act.id})">🗑️ Xóa Bỏ</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="action-item done">
+                        <div class="action-info">
+                            <h4><span class="status-text done">✔️ ĐÃ HOÀN TẤT:</span> ${act.title}</h4>
+                            <p>Lý do ban đầu: ${act.reason}</p>
+                            <p style="color: var(--text-main); font-weight: 600; margin-top:8px; font-size: 14.5px;">
+                                📅 Ngày xử lý: ${formattedDate || "--"} <br>
+                                📝 Kết quả: <span style="color:var(--info-dark);">${act.note || "Không có ghi chú"}</span>
+                            </p>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:8px; min-width: 120px;">
+                            <button class="btn-undo-action" onclick="undoAction(${act.id})">↩️ Hoàn Tác</button>
+                            <button class="btn-delete-action" onclick="deleteAction(${act.id})">🗑️ Xóa Bỏ</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
+    }
+
+    // --- LOGIC XỬ LÝ & THÊM XÓA ---
+    function resolveAction(id) {
+        const dateVal = document.getElementById(`date_${id}`).value;
+        const noteVal = document.getElementById(`note_${id}`).value;
+        
+        if (!dateVal) { alert("Vui lòng chọn ngày xử lý!"); return; }
+
+        const s = studentsData[currentStudentIndex];
+        const actIndex = s.logs.xuly.findIndex(a => a.id === id);
+        
+        s.logs.xuly[actIndex].status = 'done';
+        s.logs.xuly[actIndex].dateResolved = dateVal;
+        s.logs.xuly[actIndex].note = noteVal;
+
+        saveAndRefresh();
+    }
+
+    function undoAction(id) {
+        if (!confirm("Chuyển trạng thái xử lý về mức 'Đang Chờ'?")) return;
+        const s = studentsData[currentStudentIndex];
+        const actIndex = s.logs.xuly.findIndex(a => a.id === id);
+        s.logs.xuly[actIndex].status = 'pending';
+        s.logs.xuly[actIndex].dateResolved = '';
+        s.logs.xuly[actIndex].note = '';
+        saveAndRefresh();
+    }
+
+    function deleteAction(id) {
+        if (!confirm("⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA VĨNH VIỄN HỒ SƠ NÀY?\n\nHành động này không thể hoàn tác, hãy chắc chắn rằng bạn đang chọn đúng nhé!")) return;
+        
+        const s = studentsData[currentStudentIndex];
+        const actIndex = s.logs.xuly.findIndex(a => a.id === id);
+        
+        if (actIndex > -1) {
+            s.logs.xuly.splice(actIndex, 1);
+            saveAndRefresh();
+        }
+    }
+
+    function toggleManualInput() {
+        const sel = document.getElementById('selManualActionType').value;
+        const txt = document.getElementById('txtManualAction');
+        if (sel === 'other') {
+            txt.placeholder = "Nhập cả hình thức xử lý và nguyên nhân lỗi...";
+        } else {
+            txt.placeholder = "Nhập chi tiết nguyên nhân (VD: Đánh nhau, vô lễ...)";
+        }
+    }
+
+    function addManualAction() {
+        const selVal = document.getElementById('selManualActionType').value;
+        let txt = document.getElementById('txtManualAction').value.trim();
+        
+        let title = "";
+        let reason = "";
+
+        if (selVal === 'other') {
+            if (!txt) { alert("Vui lòng nhập đầy đủ hình thức xử lý và nguyên nhân!"); return; }
+            title = txt;
+            reason = "Giáo viên đánh giá và thêm thủ công";
+        } else {
+            title = selVal;
+            reason = txt ? txt : "Giáo viên đánh giá và thêm thủ công";
+        }
+
+        const s = studentsData[currentStudentIndex];
+        s.logs.xuly.push({
+            id: Date.now() + Math.random(),
+            code: 'MANUAL',
+            title: title,
+            reason: reason,
+            severity: 'normal',
+            status: 'pending',
+            dateResolved: '',
+            note: ''
+        });
+
+        document.getElementById('txtManualAction').value = '';
+        document.getElementById('selManualActionType').value = 'Viết bản kiểm điểm';
+        toggleManualInput();
+        saveAndRefresh();
+    }
+
+    function saveAndRefresh() {
+        localStorage.setItem('DuLieu_Lop11_Master', JSON.stringify(studentsData));
+        renderActionList();
+        renderTable();
+        updateStats();
+    }
+
+    // --- XUẤT BÁO CÁO ---
+    function exportActions() {
+        let exportData = [];
+
+        studentsData.forEach(s => {
+            if (!s.logs.xuly || s.logs.xuly.length === 0) return;
+            
+            s.logs.xuly.forEach(act => {
+                let formattedDate = act.dateResolved;
+                if (formattedDate && formattedDate.includes('-')) {
+                    const parts = formattedDate.split('-');
+                    if(parts.length === 3) formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+
+                exportData.push({
+                    "Họ và Tên": s["Họ và Tên"],
+                    "Hình Thức Xử Lý": act.title,
+                    "Nguyên Nhân Kỷ Luật": act.reason,
+                    "Trạng Thái": act.status === 'done' ? "Đã Xử Lý Xong" : "Đang Chờ Xử Lý",
+                    "Ngày Hoàn Tất": act.status === 'done' ? formattedDate : "",
+                    "Kết Quả / Ghi Chú": act.note || ""
+                });
+            });
+        });
+
+        if (exportData.length === 0) { alert("Chưa có hồ sơ xử lý kỷ luật nào để xuất!"); return; }
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        ws['!cols'] = [{wch: 25}, {wch: 30}, {wch: 40}, {wch: 18}, {wch: 18}, {wch: 40}];
+        
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "TienTrinhKyLuat");
+        
+        const nowStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, "-");
+        XLSX.writeFile(wb, `Theo_Doi_Ky_Luat_Lop_${nowStr}.xlsx`);
+    }
+</script>
+</body>
+</html>
